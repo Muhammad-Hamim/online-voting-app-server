@@ -1,30 +1,39 @@
 import { model, Schema } from "mongoose";
-import { TAppliedPosition, TUser, TVote } from "./user.interface";
+import {  TUser, UserMethods, UserModel } from "./user.interface";
+import AppError from "../../errors/AppError";
+import httpStatus from "http-status";
 
-const appliedPositionSchema = new Schema<TAppliedPosition>({
-  positionId: { type: Schema.Types.ObjectId, ref: "Position", required: true },
-  status: {
-    type: String,
-    enum: ["applied", "approved", "rejected"],
-    default: "applied",
+const userSchema = new Schema<TUser, UserModel, UserMethods>(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    studentId: { type: String, required: false, unique: true },
+    photo: { type: String, required: false },
+    role: { type: String, enum: ["user", "admin"], default: "user" },
+    status: { type: String, enum: ["active", "blocked"], default: "active" },
+    isDeleted: { type: Boolean, default: false },
   },
-  appliedAt: { type: Date, default: Date.now },
-});
-const voteSchema = new Schema<TVote>({
-  positionId: { type: Schema.Types.ObjectId, ref: "Position", required: true },
-  candidateId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  votedAt: { type: Date, default: Date.now },
-});
-const userSchema = new Schema<TUser>({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  studentId: { type: String, required: true, unique: true },
-  photo: { type: String, required: false },
-  role: { type: String, enum: ["user", "admin"], default: "user" },
-  createdAt: { type: Date, default: Date.now },
-  status: { type: String, enum: ["active", "blocked"], default: "active" },
-  appliedPositions: [appliedPositionSchema],
-  votes: [voteSchema],
+  { timestamps: true }
+);
+
+//query middleware
+userSchema.pre("find", function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
 });
 
-export const User = model<TUser>("User", userSchema);
+userSchema.pre("findOneAndUpdate", async function (next) {
+  const user = await User.findOne({ email: this.getQuery().email });
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "user does not exits");
+  }
+  next();
+});
+
+
+userSchema.methods.isUserExists = async function (email: string) {
+  const user = await User.findOne({ email, isDeleted: { $ne: true } });
+  return user;
+};
+
+export const User = model<TUser, UserModel>("User", userSchema);

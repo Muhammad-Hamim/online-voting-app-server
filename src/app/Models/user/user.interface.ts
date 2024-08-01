@@ -1,24 +1,18 @@
-import { Types } from "mongoose";
-
-export type TAppliedPosition = {
-  positionId: Types.ObjectId;
-  appliedAt: Date;
-  status: "applied" | "approved" | "rejected";
-};
-export type TVote = {
-  positionId: Types.ObjectId;
-  candidateId: Types.ObjectId;
-  votedAt: Date;
-};
+import { Model } from "mongoose";
 
 export type TUser = {
   name: string;
   email: string;
-  studentId: string;
+  studentId?: string;
   photo: string;
   role: "user" | "admin";
-  createdAt: Date;
   status: "active" | "blocked";
-  appliedPositions?: TAppliedPosition[];
-  votes?: TVote[];
+  isDeleted: boolean;
 };
+
+export interface UserMethods {
+  isUserExists(email: string): Promise<TUser | null>;
+}
+
+
+export type UserModel = Model<TUser, Record<string, never>, UserMethods>;

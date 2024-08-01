@@ -1,29 +1,25 @@
 import { z } from "zod";
-import { Types } from "mongoose";
 
-const appliedPositionValidationSchema = z.object({
-  positionId: z.instanceof(Types.ObjectId),
-  status: z.enum(["applied", "approved", "rejected"]).default("applied"),
-  appliedAt: z.date().default(() => new Date()),
-});
-
-const voteValidationSchema = z.object({
-  positionId: z.instanceof(Types.ObjectId),
-  candidateId: z.instanceof(Types.ObjectId),
-  votedAt: z.date().default(() => new Date()),
-});
-
-export const userValidationSchema = z.object({
-  name: z.string().min(3),
-  email: z.string().email(),
-  studentId: z.string().min(2),
-  photo: z.string().url(),
-  role: z.enum(["user", "admin"]).default("user"),
-  createdAt: z.date().default(() => new Date()),
-  status: z.enum(["active", "blocked"]).default("active"),
-  appliedPositions: z.array(appliedPositionValidationSchema).optional(),
-  votes: z.array(voteValidationSchema).optional(),
+export const createUserValidationSchema = z.object({
+  body: z.object({
+    name: z.string().min(3),
+    email: z.string().email(),
+    studentId: z.string().min(2).optional(),
+    photo: z.string().url(),
+    role: z.enum(["user", "admin"]).default("user"),
+    status: z.enum(["active", "blocked"]).default("active"),
+    isDeleted: z.boolean().default(false),
+  }),
 });
 
 //partial schema for updates
-export const updateUserValidationSchema = userValidationSchema.partial();
+export const updateUserValidationSchema = z.object({
+  body: z.object({
+    name: z.string().min(3).optional(),
+    email: z.string().email().optional(),
+    studentId: z.string().min(2).optional(),
+    photo: z.string().url().optional(),
+    role: z.enum(["user", "admin"]).default("user").optional(),
+    status: z.enum(["active", "blocked"]).default("active").optional(),
+  }),
+});
