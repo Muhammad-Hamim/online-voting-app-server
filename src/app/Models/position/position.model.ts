@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
-import { TPosition } from "./position.interface";
+import { PositionModel, TPosition } from "./position.interface";
 
-const positionSchema = new Schema<TPosition>(
+const positionSchema = new Schema<TPosition, PositionModel>(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -15,8 +15,18 @@ const positionSchema = new Schema<TPosition>(
     terminationMessage: { type: String },
     maxVotes: { type: Number, required: true },
     maxCandidate: { type: Number, required: true },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-export const Position = model<TPosition>("Position", positionSchema);
+positionSchema.statics.isPositionDeleted = async function (id: string) {
+  return await Position.findById(id, { isDeleted: true });
+};
+positionSchema.statics.isPositionExists = async function (id: string) {
+  return await Position.findById(id);
+};
+export const Position = model<TPosition, PositionModel>(
+  "Position",
+  positionSchema
+);

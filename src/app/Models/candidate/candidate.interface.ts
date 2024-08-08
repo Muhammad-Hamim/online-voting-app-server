@@ -1,6 +1,6 @@
-import { Types } from "mongoose";
+import { Model, Types } from "mongoose";
 
-export type TCandidate = {
+export interface TCandidate {
   candidate: Types.ObjectId;
   email: string;
   position: Types.ObjectId;
@@ -9,3 +9,12 @@ export type TCandidate = {
   photo?: string;
   message?: string;
 };
+
+
+export interface CandidateModel extends Model<TCandidate>{
+  isCandidateExists(email:string):Promise<TCandidate | null>;
+  isCandidateAlreadyApplied(id:string,position:string):Promise<boolean>
+  isMaxCandidateAlreadyFilled(position:string):Promise<number>
+}
+
+

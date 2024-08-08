@@ -1,13 +1,13 @@
 import { model, Schema } from "mongoose";
-import { TVote } from "./vote.interface";
+import { TVote, VotesModel } from "./vote.interface";
 
-const votesSchema = new Schema<TVote>(
+const votesSchema = new Schema<TVote, VotesModel>(
   {
     voter: { type: Schema.Types.ObjectId, ref: "User", required: true },
     email: { type: String, required: true },
     candidate: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Candidate",
       required: true,
     },
     position: {
@@ -19,4 +19,11 @@ const votesSchema = new Schema<TVote>(
   { timestamps: true }
 );
 
-export const Vote = model<TVote>("Vote", votesSchema);
+votesSchema.statics.isUserAlreadyVoted = async function (
+  voter: string,
+  position: string
+) {
+  return await Vote.findOne({ voter, position });
+};
+
+export const Vote = model<TVote, VotesModel>("Vote", votesSchema);

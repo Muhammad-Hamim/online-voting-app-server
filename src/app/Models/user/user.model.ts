@@ -1,9 +1,9 @@
 import { model, Schema } from "mongoose";
-import {  TUser, UserMethods, UserModel } from "./user.interface";
+import { TUser, UserModel } from "./user.interface";
 import AppError from "../../errors/AppError";
 import httpStatus from "http-status";
 
-const userSchema = new Schema<TUser, UserModel, UserMethods>(
+const userSchema = new Schema<TUser, UserModel>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -30,10 +30,14 @@ userSchema.pre("findOneAndUpdate", async function (next) {
   next();
 });
 
-
-userSchema.methods.isUserExists = async function (email: string) {
-  const user = await User.findOne({ email, isDeleted: { $ne: true } });
+userSchema.statics.isUserExists = async function (email: string) {
+  const user = await User.findOne({ email });
   return user;
 };
-
+userSchema.statics.isUserStatusActive = async function (email: string) {
+  return await User.findOne({ email, status: "active" });
+};
+userSchema.statics.isUserDeleted = async function (email: string) {
+  return await User.findOne({ email, isDeleted: true });
+};
 export const User = model<TUser, UserModel>("User", userSchema);

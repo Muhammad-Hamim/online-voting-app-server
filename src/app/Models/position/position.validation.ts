@@ -11,6 +11,7 @@ export const createPositionValidationSchema = z.object({
     terminationMessage: z.string().optional(),
     maxVotes: z.number().int().positive(),
     maxCandidate: z.number().int().positive(),
+    isDeleted: z.boolean().default(false),
   }),
 });
 

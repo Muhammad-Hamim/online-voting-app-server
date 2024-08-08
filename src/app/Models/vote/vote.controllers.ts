@@ -22,7 +22,19 @@ const getAllVote = catchAsync(async (req, res) => {
     data: result,
   });
 });
-
+const getCandidateBasedVoterList = catchAsync(async (req, res) => {
+  const { candidate, position } = req.params;
+  const result = await VoteServices.getCandidateBasedVoterListFromDB(
+    candidate,
+    position
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "voters list retrieved successfully",
+    data: result,
+  });
+});
 const getSingleVote = catchAsync(async (req, res) => {
   const result = await VoteServices.getSingleVoteFromDB(req.params.email);
   sendResponse(res, {
@@ -37,5 +49,5 @@ const getSingleVote = catchAsync(async (req, res) => {
 export const VoteControllers = {
   createVote,
   getAllVote,
-  getSingleVote,
+  getSingleVote,getCandidateBasedVoterList
 };

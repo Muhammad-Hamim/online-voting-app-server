@@ -12,5 +12,6 @@ router.post(
 );
 router.get("/", VoteControllers.getAllVote);
 router.get("/:email", VoteControllers.getSingleVote);
+router.get("/:candidate/:position", VoteControllers.getCandidateBasedVoterList);
 
 export const VoteRoute = router;

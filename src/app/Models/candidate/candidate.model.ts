@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
-import { TCandidate } from "./candidate.interface";
+import { CandidateModel, TCandidate } from "./candidate.interface";
 
-const candidateSchema = new Schema<TCandidate>(
+const candidateSchema = new Schema<TCandidate, CandidateModel>(
   {
     candidate: { type: Schema.Types.ObjectId, ref: "User", required: true },
     email: { type: String, required: true },
@@ -22,4 +22,26 @@ const candidateSchema = new Schema<TCandidate>(
   { timestamps: true }
 );
 
-export const Candidate = model<TCandidate>("Candidate", candidateSchema);
+candidateSchema.statics.isCandidateExists = async function (email: string) {
+  return await Candidate.findOne({ email });
+};
+
+candidateSchema.statics.isCandidateAlreadyApplied = async function (
+  candidate: string,
+  position: string
+) {
+  return await Candidate.findOne({ candidate, position });
+};
+candidateSchema.statics.isMaxCandidateAlreadyFilled = async function (
+  position: string
+) {
+  const appliedApprovedCandidate = await Candidate.find({
+    position,
+    status: "approved",
+  });
+  return appliedApprovedCandidate.length;
+};
+export const Candidate = model<TCandidate, CandidateModel>(
+  "Candidate",
+  candidateSchema
+);

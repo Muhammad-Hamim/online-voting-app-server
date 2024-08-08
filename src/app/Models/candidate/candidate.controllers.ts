@@ -24,7 +24,9 @@ const getAllCandidate = catchAsync(async (req, res) => {
 });
 
 const getSingleCandidate = catchAsync(async (req, res) => {
-  const result = await CandidateServices.getSingleCandidateFromDB(req.params.email);
+  const result = await CandidateServices.getSingleCandidateFromDB(
+    req.params.email
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -33,9 +35,32 @@ const getSingleCandidate = catchAsync(async (req, res) => {
   });
 });
 
+const updateCandidate = catchAsync(async (req, res) => {
+  const { email } = req.params;
+  const result = await CandidateServices.updateCandidateIntoDB(email, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Candidate info updated successfully",
+    data: result,
+  });
+});
+const updateCandidateStatus = catchAsync(async (req, res) => {
+  const { email } = req.params;
+  const result = await CandidateServices.updateCandidateIntoDB(email, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Candidate status updated successfully",
+    data: result,
+  });
+});
 
 export const CandidateControllers = {
   createCandidate,
   getAllCandidate,
   getSingleCandidate,
+  updateCandidate,
+  updateCandidateStatus,
+  
 };

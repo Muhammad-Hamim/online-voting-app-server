@@ -17,3 +17,15 @@ export const updateCandidateVoteValidationSchema = z.object({
     votes: z.number(),
   }),
 });
+
+export const updateCandidateInfoValidationSchema = z.object({
+  body: z.object({
+    photo: z.string().optional(),
+    message: z.string().optional(),
+  }),
+});
+export const updateCandidateStatusValidationSchema = z.object({
+  body: z.object({
+    status: z.enum(["approved", "rejected"]),
+  }),
+});

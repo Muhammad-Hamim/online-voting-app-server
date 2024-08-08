@@ -3,6 +3,7 @@ import { UserControllers } from "./user.controllers";
 import validateRequest from "../../middlewares/validateRequest";
 import {
   createUserValidationSchema,
+  updateUserRoleAndStatusValidationSchema,
   updateUserValidationSchema,
 } from "./user.validation";
 
@@ -18,7 +19,12 @@ router.get("/:email", UserControllers.getSingleUser);
 router.patch(
   "/:email",
   validateRequest(updateUserValidationSchema),
-  UserControllers.updateUser
+  UserControllers.updateUserBasicInfo
+);
+router.patch(
+  "/update-user-status-role/:email",
+  validateRequest(updateUserRoleAndStatusValidationSchema),
+  UserControllers.updateUserRoleAndStatus
 );
 router.delete("/:email", UserControllers.deleteUser);
 
