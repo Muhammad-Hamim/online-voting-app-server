@@ -38,10 +38,24 @@ const updatePositionIntoDB = async (
     throw new AppError(httpStatus.FORBIDDEN, "Position status is not pending");
   }
   //check if the position is deleted
-  if (await Position.isPositionDeleted(id)) {
+  if (position?.isDeleted === true) {
     throw new AppError(httpStatus.FORBIDDEN, "Position is deleted");
   }
   const result = await Position.findByIdAndUpdate(id, payload, {
+    new: true,
+  });
+  return result;
+};
+const updatePositionStatusAndTerminationMessageIntoDB = async (
+  id: string,
+  payload: Partial<TPosition>
+) => {
+  // check if the position is exist
+  const position = await Position.isPositionExists(id);
+  if (!position) {
+    throw new AppError(httpStatus.NOT_FOUND, "Position does not exists");
+  }
+  const result = await Position.findOneAndUpdate({ _id: id }, payload, {
     new: true,
   });
   return result;
@@ -52,8 +66,8 @@ const getCandidateForPositionFromDB = async (position: string) => {
   if (!positionDate) {
     throw new AppError(httpStatus.NOT_FOUND, "Position does not exists");
   }
-  const result = await Candidate.find({ position: position })
-    .populate("candidate", "name email status")
+  const result = await Candidate.find({ position })
+    .populate("candidate", "name studentId")
     .populate("position", "title description status");
   if (result.length) {
     return result;
@@ -68,4 +82,5 @@ export const PositionServices = {
   getSinglePositionFromDB,
   updatePositionIntoDB,
   getCandidateForPositionFromDB,
+  updatePositionStatusAndTerminationMessageIntoDB,
 };

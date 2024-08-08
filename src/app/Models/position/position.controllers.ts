@@ -44,6 +44,17 @@ const updatePosition = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const updatePositionStatusAndTerminationMessage = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const positionData = req.body;
+  const result = await PositionServices.updatePositionStatusAndTerminationMessageIntoDB(id, positionData);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "position status updated successfully",
+    data: result,
+  });
+});
 const getCandidateForPosition = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await PositionServices.getCandidateForPositionFromDB(id);
@@ -59,5 +70,5 @@ export const PositionControllers = {
   getAllPosition,
   getSinglePosition,
   updatePosition,
-  getCandidateForPosition
+  getCandidateForPosition,updatePositionStatusAndTerminationMessage
 };

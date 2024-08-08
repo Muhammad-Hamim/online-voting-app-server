@@ -33,8 +33,7 @@ const updateUserBasicInfoIntoDB = async (
   payload: Partial<TUser>
 ) => {
   const user = await User.isUserExists(email);
-  const userDeleted = await User.isUserDeleted(email);
-  if (!user || userDeleted) {
+  if (!user || user?.isDeleted === true) {
     throw new AppError(httpStatus.NOT_FOUND, "user does not exist or deleted");
   }
 
@@ -59,8 +58,7 @@ const updateUserRoleAndStatusIntoDB = async (
 };
 const deleteUserIntoDB = async (email: string) => {
   const user = await User.isUserExists(email);
-  const userDeleted = await User.isUserDeleted(email);
-  if (!user || userDeleted) {
+  if (!user || user?.isDeleted === true) {
     throw new AppError(
       httpStatus.NOT_FOUND,
       "user does not exist or already deleted"

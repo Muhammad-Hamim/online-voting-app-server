@@ -30,7 +30,7 @@ candidateSchema.statics.isCandidateAlreadyApplied = async function (
   candidate: string,
   position: string
 ) {
-  return await Candidate.findOne({ candidate, position });
+  return await Candidate.findOne({candidate, position });
 };
 candidateSchema.statics.isMaxCandidateAlreadyFilled = async function (
   position: string
