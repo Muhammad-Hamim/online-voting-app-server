@@ -4,6 +4,7 @@ import { User } from "../user/user.model";
 import { TCandidate } from "./candidate.interface";
 import { Candidate } from "./candidate.model";
 import { Position } from "../position/position.model";
+import { USER_ROLE } from "../user/user.constant";
 
 const createCandidateIntoDB = async (payload: TCandidate) => {
   //check if user is exists
@@ -14,6 +15,7 @@ const createCandidateIntoDB = async (payload: TCandidate) => {
       "user does not exist or deleted or blocked"
     );
   }
+
   //check if position is exists and status is pending
   const position = await Position.isPositionExists(payload.position.toString());
   if (

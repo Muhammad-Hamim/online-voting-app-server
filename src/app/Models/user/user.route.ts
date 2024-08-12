@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { UserControllers } from "./user.controllers";
 import validateRequest from "../../middlewares/validateRequest";
 import {
@@ -6,26 +6,56 @@ import {
   updateUserRoleAndStatusValidationSchema,
   updateUserValidationSchema,
 } from "./user.validation";
+import auth from "../../middlewares/auth";
+import { USER_ROLE } from "./user.constant";
+import { upload } from "../../utils/sendImgToCloudinary";
 
 const router = express.Router();
 
 router.post(
   "/create-user",
+  upload.single("photo"),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
   validateRequest(createUserValidationSchema),
   UserControllers.createUser
 );
-router.get("/", UserControllers.getAllUser);
-router.get("/:email", UserControllers.getSingleUser);
+router.post(
+  "/create-admin",
+  auth(USER_ROLE.superAdmin),
+  upload.single("photo"),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
+  validateRequest(createUserValidationSchema),
+  UserControllers.createAdmin
+);
+router.get("/", auth(USER_ROLE.superAdmin), UserControllers.getAllUser);
+router.get(
+  "/:email",
+  auth(USER_ROLE.superAdmin),
+  UserControllers.getSingleUser
+);
+router.get("/me", UserControllers.getMe);
 router.patch(
   "/:email",
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.user),
   validateRequest(updateUserValidationSchema),
   UserControllers.updateUserBasicInfo
 );
 router.patch(
   "/update-user-status-role/:email",
+  auth(USER_ROLE.superAdmin),
   validateRequest(updateUserRoleAndStatusValidationSchema),
   UserControllers.updateUserRoleAndStatus
 );
-router.delete("/:email", UserControllers.deleteUser);
+router.delete(
+  "/:email",
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.user),
+  UserControllers.deleteUser
+);
 
 export const UserRoute = router;

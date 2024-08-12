@@ -3,6 +3,7 @@ import { UserRoute } from "../Models/user/user.route";
 import { PositionRoute } from "../Models/position/position.route";
 import { CandidateRoute } from "../Models/candidate/candidate.route";
 import { VoteRoute } from "../Models/vote/vote.route";
+import { AuthRoutes } from "../Models/auth/auth.routes";
 
 const router = Router();
 
@@ -22,6 +23,10 @@ const moduleRoutes = [
   {
     path: "/votes",
     route: VoteRoute,
+  },
+  {
+    path: "/auth",
+    route: AuthRoutes,
   },
 ];
 
