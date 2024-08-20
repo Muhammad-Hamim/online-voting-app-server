@@ -1,19 +1,20 @@
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
-export interface TPosition  {
+export interface TPosition {
   title: string;
   description: string;
   duration: string;
-  status: "pending" | "ongoing" | "terminated" | "completed";
+  status: "pending" | "live" | "terminated" | "closed";
   terminationMessage?: string;
   maxVotes: number;
+  creator: Types.ObjectId;
   maxCandidate: number;
-  isDeleted:boolean;
-};
-
+  applicationDeadline?: string;
+  isDeleted: boolean;
+}
 
 //create static method
-export interface PositionModel extends Model<TPosition>{
-  isPositionDeleted(id:string):Promise<boolean>;
-  isPositionExists(id:string):Promise<TPosition | null>;
+export interface PositionModel extends Model<TPosition> {
+  isPositionDeleted(id: string): Promise<boolean>;
+  isPositionExists(id: string): Promise<TPosition | null>;
 }

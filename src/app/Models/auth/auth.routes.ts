@@ -24,6 +24,11 @@ router.post(
   AuthControllers.loginAdmin
 );
 router.post(
+  "/logout",
+  
+  AuthControllers.logoutUser
+);
+router.post(
   "/change-password",
   auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.superAdmin),
   validateRequest(changePassValidationSchema),
@@ -31,7 +36,7 @@ router.post(
 );
 router.post(
   "/refresh-token",
-  validateRequest(refreshTokenValidationSchema),
+  // validateRequest(refreshTokenValidationSchema),
   AuthControllers.refreshToken
 );
 router.post(

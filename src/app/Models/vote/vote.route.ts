@@ -14,6 +14,7 @@ router.post(
   VoteControllers.createVote
 );
 router.get("/", auth(USER_ROLE.superAdmin), VoteControllers.getAllVote);
+router.get("/get-my-votes", auth(USER_ROLE.user), VoteControllers.getMyVotes);
 router.get("/:email", VoteControllers.getSingleUserVote);
 router.get(
   "/:candidate/:position",

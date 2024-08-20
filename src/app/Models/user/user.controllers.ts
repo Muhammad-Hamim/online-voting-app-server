@@ -4,7 +4,7 @@ import sendResponse from "../../utils/sendResponse";
 import httpStatus from "http-status";
 
 const createUser = catchAsync(async (req, res) => {
-  const result = await UserServices.createUserIntoDB(req.body,req.file);
+  const result = await UserServices.createUserIntoDB(req.body, req.file);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -13,7 +13,7 @@ const createUser = catchAsync(async (req, res) => {
   });
 });
 const createAdmin = catchAsync(async (req, res) => {
-  const result = await UserServices.createAdminIntoDB(req.body,req.file);
+  const result = await UserServices.createAdminIntoDB(req.body, req.file);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -43,8 +43,13 @@ const getSingleUser = catchAsync(async (req, res) => {
 });
 
 const updateUserBasicInfo = catchAsync(async (req, res) => {
-  const { email } = req.params;
-  const result = await UserServices.updateUserBasicInfoIntoDB(email, req.body);
+  const photo = req?.file || null;
+  const userData = req?.body || {};
+  const result = await UserServices.updateUserBasicInfoIntoDB(
+    req.user,
+    userData,
+    photo
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -78,14 +83,14 @@ const deleteUser = catchAsync(async (req, res) => {
 });
 const getMe = catchAsync(async (req, res) => {
   const result = await UserServices.getMeFromDB(req.user);
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "user data retrieved successfully",
+    message: "your data retrieved successfully",
     data: result,
   });
 });
+
 export const UserControllers = {
   createUser,
   createAdmin,

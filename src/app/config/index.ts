@@ -18,4 +18,7 @@ export default {
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
   admin_login_url: process.env.ADMIN_LOGIN_URL,
+  user_login_url:process.env.USER_LOGIN_URL,
+  nodemailer_email:process.env.NODEMAILER_EMAIL,
+  nodemailer_pass:process.env.NODEMAILER_PASS
 };

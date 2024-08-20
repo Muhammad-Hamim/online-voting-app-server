@@ -17,15 +17,25 @@ router.post(
   validateRequest(createPositionValidationSchema),
   PositionControllers.createPosition
 );
-router.get("/", auth(USER_ROLE.superAdmin), PositionControllers.getAllPosition);
 router.get(
-  "/:id",
-  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
-  PositionControllers.getSinglePosition
+  "/",
+  auth(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.superAdmin),
+  PositionControllers.getAllPosition
+);
+// router.get(
+//   "/:id",
+//   auth(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.superAdmin),
+
+//   PositionControllers.getSinglePosition
+// );
+router.get(
+  "/get-positions-with-candidates",
+  auth(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.superAdmin),
+  PositionControllers.getAllPositionsWithCandidatesAndWinner
 );
 router.get(
   "/get-candidate-for-position/:id",
-  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.user),
   PositionControllers.getCandidateForPosition
 );
 router.patch(

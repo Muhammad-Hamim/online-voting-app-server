@@ -6,7 +6,7 @@ import config from "../../config";
 import { generateToken, verifyToken } from "./auth.utils";
 import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { sendEmail } from "../../utils/sendEmail";
+import { sendResetEmail } from "../../utils/sendResetEmail";
 import { USER_ROLE } from "../user/user.constant";
 
 const loginUserIntoDB = async (payload: TLoginUser) => {
@@ -98,6 +98,13 @@ const loginAdminIntoDB = async (payload: TLoginUser) => {
   return { accessToken, refreshToken };
 };
 
+const logoutUser = async (token: string) => {
+  if (!token) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized user");
+  }
+  return true;
+};
+
 const changeUserPassIntoDB = async (
   userData: JwtPayload,
   payload: TPasswordData
@@ -147,10 +154,7 @@ const refreshToken = async (token: string) => {
     throw new AppError(httpStatus.UNAUTHORIZED, "unauthorized user");
   }
   // check if the token is valid
-  const decoded = jwt.verify(
-    token,
-    config.JWT_REFRESH_SECRET as string
-  ) as JwtPayload;
+  const decoded = verifyToken(token, config.JWT_REFRESH_SECRET as string);
   const { email, iat } = decoded;
 
   //check if user is exists
@@ -218,8 +222,7 @@ const forgetPassword = async (email: string) => {
   );
 
   const resetUiLink = `${config.reset_pass_ui_link}?email=${user.email}&token=${resetToken}`;
-
-  sendEmail(user.email, resetUiLink);
+  sendResetEmail(user.email, resetUiLink);
 };
 
 const resetPassword = async (
@@ -258,6 +261,7 @@ const resetPassword = async (
 export const AuthServices = {
   loginUserIntoDB,
   loginAdminIntoDB,
+  logoutUser,
   changeUserPassIntoDB,
   refreshToken,
   forgetPassword,

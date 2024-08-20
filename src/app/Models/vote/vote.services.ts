@@ -6,7 +6,6 @@ import { Vote } from "./vote.model";
 import { Position } from "../position/position.model";
 import mongoose from "mongoose";
 import { Candidate } from "../candidate/candidate.model";
-
 const createVoteIntoDB = async (payload: TVote) => {
   //check if user is exists
   const user = await User.isUserExists(payload?.email);
@@ -17,7 +16,7 @@ const createVoteIntoDB = async (payload: TVote) => {
   const position = await Position.isPositionExists(payload.position.toString());
   if (
     !position ||
-    position?.status !== "ongoing" ||
+    position?.status !== "live" ||
     position?.isDeleted === true
   ) {
     throw new AppError(
@@ -233,8 +232,48 @@ const getSingleUserVoteFromDB = async (email: string) => {
   }
   const result = await Vote.find({ email })
     .populate("voter", "name email studentId")
-    .populate("candidate", "name email votes")
-    .populate("position", "title description");
+    .populate({
+      path: "candidate",
+      select: "candidate votes message",
+      populate: {
+        path: "candidate", // This refers to the `candidate` field in `Candidate` collection
+        select: "name email photo studentId", // Assuming the User schema has these fields
+      },
+    })
+    .populate({
+      path: "position",
+      select: "title description creator",
+      populate:{
+        path: "creator",
+        select:"name email photo _id"
+      }
+    });
+
+  return result;
+};
+const getMyVotesFromDB = async (email: string) => {
+  const user = await User.isUserExists(email);
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "user does not exist");
+  }
+  const result = await Vote.find({ email })
+    .populate("voter", "name email studentId")
+    .populate({
+      path: "candidate",
+      select: "candidate votes message",
+      populate: {
+        path: "candidate",
+        select: "name email photo studentId",
+      },
+    })
+    .populate({
+      path: "position",
+      select: "title description creator",
+      populate:{
+        path: "creator",
+        select:"name email photo _id"
+      }
+    });
 
   return result;
 };
@@ -242,6 +281,7 @@ const getSingleUserVoteFromDB = async (email: string) => {
 export const VoteServices = {
   createVoteIntoDB,
   getAllVotesFromDB,
+  getMyVotesFromDB,
   getSingleUserVoteFromDB,
   getCandidateBasedVoterListFromDB,
 };

@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import { model, Query, Schema } from "mongoose";
 import { TUser, UserModel } from "./user.interface";
 import AppError from "../../errors/AppError";
 import httpStatus from "http-status";
@@ -8,7 +8,7 @@ import config from "../../config";
 const userSchema = new Schema<TUser, UserModel>(
   {
     name: { type: String, required: true },
-    password: { type: String, required: true, select: 0 },
+    password: { type: String, required: true, select: false }, // Ensure password is not selected by default
     passwordChangedAt: { type: Date },
     email: { type: String, required: true, unique: true },
     studentId: { type: String, required: false, unique: true },
@@ -27,7 +27,6 @@ const userSchema = new Schema<TUser, UserModel>(
   { timestamps: true }
 );
 
-//hash password before save to db
 userSchema.pre("save", async function (next) {
   const user = this;
   user.password = await bcrypt.hash(
@@ -41,26 +40,29 @@ userSchema.pre("save", async function (next) {
     user.status = "pending";
   }
   next();
-});
-// after creating user, return empty password
+});// After creating or updating a user, remove the password field from the returned document
 userSchema.post("save", function (doc, next) {
   (doc.password = ""), next();
 });
 
-//query middleware
-userSchema.pre("find", function (next) {
-  this.find({ isDeleted: { $ne: true } });
+
+
+// Middleware to ensure password is not returned during aggregation
+userSchema.pre("aggregate", function (next) {
+  const pipeline = this.pipeline();
+  pipeline.unshift({ $unset: "password" }); // Remove the password field from the aggregation results
   next();
 });
 
 userSchema.pre("findOneAndUpdate", async function (next) {
   const user = await User.findOne({ email: this.getQuery().email });
   if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "user does not exits");
+    throw new AppError(httpStatus.NOT_FOUND, "User does not exist");
   }
   next();
 });
 
+// Static methods for user-related operations
 userSchema.statics.isUserExists = async function (email: string) {
   const user = await User.findOne({ email });
   return user;
@@ -81,7 +83,6 @@ userSchema.statics.isPasswordMatched = async function (
 ) {
   return await bcrypt.compare(plainTextPass, hashedPass);
 };
-
 userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
   passwordChangedTimeStamp: Date,
   jwtIssuedTimeStamp: number

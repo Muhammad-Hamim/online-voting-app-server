@@ -44,17 +44,23 @@ const updatePosition = catchAsync(async (req, res) => {
     data: result,
   });
 });
-const updatePositionStatusAndTerminationMessage = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const positionData = req.body;
-  const result = await PositionServices.updatePositionStatusAndTerminationMessageIntoDB(id, positionData);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "position status updated successfully",
-    data: result,
-  });
-});
+const updatePositionStatusAndTerminationMessage = catchAsync(
+  async (req, res) => {
+    const { id } = req.params;
+    const positionData = req.body;
+    const result =
+      await PositionServices.updatePositionStatusAndTerminationMessageIntoDB(
+        id,
+        positionData
+      );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "position status updated successfully",
+      data: result,
+    });
+  }
+);
 const getCandidateForPosition = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await PositionServices.getCandidateForPositionFromDB(id);
@@ -65,10 +71,22 @@ const getCandidateForPosition = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const getAllPositionsWithCandidatesAndWinner = catchAsync(async (req, res) => {
+  const result =
+    await PositionServices.getAllPositionsWithCandidatesAndWinnerFromDB();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "positions with candidates data retrieved successfully",
+    data: result,
+  });
+});
 export const PositionControllers = {
   createPosition,
   getAllPosition,
   getSinglePosition,
   updatePosition,
-  getCandidateForPosition,updatePositionStatusAndTerminationMessage
+  getCandidateForPosition,
+  updatePositionStatusAndTerminationMessage,
+  getAllPositionsWithCandidatesAndWinner,
 };

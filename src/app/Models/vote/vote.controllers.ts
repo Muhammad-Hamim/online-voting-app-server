@@ -44,10 +44,21 @@ const getSingleUserVote = catchAsync(async (req, res) => {
     data: result,
   });
 });
-
+const getMyVotes = catchAsync(async (req, res) => {
+  const email = req.user.email;
+  const result = await VoteServices.getSingleUserVoteFromDB(email);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Vote retrieved successfully",
+    data: result,
+  });
+});
 
 export const VoteControllers = {
   createVote,
   getAllVote,
-  getSingleUserVote,getCandidateBasedVoterList
+  getMyVotes,
+  getSingleUserVote,
+  getCandidateBasedVoterList,
 };

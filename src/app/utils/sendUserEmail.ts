@@ -1,21 +1,21 @@
 import nodemailer from "nodemailer";
 import config from "../config";
 
-export const sendAdminLoginEmail = async (email: string, password:string) => {
+export const sendUserEmail = async (email: string, password: string) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
     secure: config.NODE_ENV === "Production",
     auth: {
-      user: "hamim.me01@gmail.com",
-      pass: "eexb djfr nsjh nigi",
+      user: config.nodemailer_email as string,
+      pass: config.nodemailer_pass as string,
     },
   });
 
   await transporter.sendMail({
-    from: "hamim.me01@gmail.com",
+    from: config.nodemailer_email as string,
     to: email,
-    subject: "Welcome to the Online Voting App - Activate Your Admin Account",
+    subject: "Welcome to the Online Voting App - Your Account Details",
     html: `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -62,7 +62,16 @@ export const sendAdminLoginEmail = async (email: string, password:string) => {
                 line-height: 1.6;
                 margin-bottom: 20px;
             }
-            .content a {
+            .credentials {
+                font-weight: bold;
+                font-size: 18px;
+                background-color: #f8f9fa;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+            }
+            
+            .content > .button > a{
                 display: inline-block;
                 padding: 12px 25px;
                 margin-top: 15px;
@@ -93,11 +102,16 @@ export const sendAdminLoginEmail = async (email: string, password:string) => {
             </div>
             <div class="content">
                 <h2>Hello,</h2>
-                <p>We are excited to have you on board as an Admin in the Online Voting App. Your account has been created with the following default password:</p>
-                <p style="font-weight: bold; font-size: 18px;">${password}</p>
-                <p>To get started, please click the button below to log in. You will be required to change your password immediately after logging in for security purposes. This link will expire in 24 hours.</p>
-                <a href="${config.admin_login_url}">Activate Your Admin Account</a>
-                <p>If you did not request this role or believe this is a mistake, please contact our support team immediately.</p>
+                <p>We are excited to have you join the Online Voting App. Your account has been successfully created with the following credentials:</p>
+                <div class="credentials">
+                    <p>Email: <span style="color: #007bff;">${email}</span></p>
+                    <p>Password: <span style="color: #007bff;">${password}</span></p>
+                </div>
+                <p>To get started, please click the button below to log in. For security purposes, you may want to change your password after logging in. This link will expire in 24 hours.</p>
+                <div class="button">
+                    <a href="${config.user_login_url}">Log In to Your Account</a>
+                </div>
+                <p>If you did not create this account or believe this is a mistake, please contact our support team immediately.</p>
                 <p>Best Regards,<br>The Online Voting App Team</p>
             </div>
             <div class="footer">

@@ -5,7 +5,7 @@ import { User } from "./user.model";
 import config from "../../config";
 import { JwtPayload } from "jsonwebtoken";
 import { sendImgToCloudinary } from "../../utils/sendImgToCloudinary";
-import { sendAdminLoginEmail } from "../../utils/sendAdminLoginEmail";
+import { sendUserEmail } from "../../utils/sendUserEmail";
 import { generateRandomPassword } from "./user.utils";
 
 const createUserIntoDB = async (payload: TUser, photo: any) => {
@@ -13,10 +13,8 @@ const createUserIntoDB = async (payload: TUser, photo: any) => {
   if (user) {
     throw new AppError(httpStatus.FORBIDDEN, "user already exists");
   }
-  //if password is not given, use default password
-  if (!payload.password) {
-    payload.password = config.default_pass as string;
-  }
+  //set random password
+  payload.password = generateRandomPassword(8);
   //set user role to user since we're creating user
   if (!payload.role) {
     payload.role = "user";
@@ -27,6 +25,10 @@ const createUserIntoDB = async (payload: TUser, photo: any) => {
   const { secure_url } = await sendImgToCloudinary(imgName, path);
   payload.photo = secure_url;
   const result = await User.create(payload);
+  //send email with password
+  if (result) {
+    sendUserEmail(result.email, payload.password);
+  }
   return result;
 };
 const createAdminIntoDB = async (payload: TUser, photo: any) => {
@@ -44,13 +46,12 @@ const createAdminIntoDB = async (payload: TUser, photo: any) => {
   const imgName = `${payload.name}-${payload.email}`;
   const path = photo?.path;
   const { secure_url } = await sendImgToCloudinary(imgName, path);
-  console.log(payload.password);
   payload.photo = secure_url;
   //create admin
   const result = await User.create(payload);
   //send email with password
   if (result) {
-    sendAdminLoginEmail(result.email, payload.password);
+    sendUserEmail(result.email, payload.password);
   }
   return result;
 };
@@ -72,19 +73,35 @@ const getSingleUserFromDB = async (email: string) => {
   return result;
 };
 const updateUserBasicInfoIntoDB = async (
-  email: string,
-  payload: Partial<TUser>
+  userInfo: JwtPayload,
+  payload: Partial<TUser>, // Payload can be partial
+  photo: any
 ) => {
+  const email = userInfo?.email;
   const user = await User.isUserExists(email);
   if (!user || user?.isDeleted === true) {
-    throw new AppError(httpStatus.NOT_FOUND, "user does not exist or deleted");
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "User does not exist or is deleted"
+    );
   }
 
+  if (photo) {
+    // Handle photo upload to cloudinary if provided
+    const imgName = `${user.name}-${user.email}`;
+    const path = photo?.path;
+    const { secure_url } = await sendImgToCloudinary(imgName, path);
+    payload.photo = secure_url; // Update photo URL in payload
+  }
+
+  // Update user with provided fields
   const result = await User.findOneAndUpdate({ email }, payload, {
     new: true,
   });
+
   return result;
 };
+
 const updateUserRoleAndStatusIntoDB = async (
   email: string,
   payload: Partial<TUser>

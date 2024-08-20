@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/server.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "src/**/*.ts",
+          "src/**/*.json"
+        ]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "src/server.ts"
+    }
+  ],
+  "ignoreCommand": "tsc && rm -rf dist && mkdir dist && cp -R src/. dist/ && cp package.json dist/ && cd dist && yarn install --production",
+  "outputDirectory": "dist"
+}

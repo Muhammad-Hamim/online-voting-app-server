@@ -33,15 +33,24 @@ router.post(
   validateRequest(createUserValidationSchema),
   UserControllers.createAdmin
 );
-router.get("/", auth(USER_ROLE.superAdmin), UserControllers.getAllUser);
+// router.get("/", auth(USER_ROLE.superAdmin), UserControllers.getAllUser);
+// router.get(
+//   "/:email",
+//   auth(USER_ROLE.superAdmin),
+//   UserControllers.getSingleUser
+// );
 router.get(
-  "/:email",
-  auth(USER_ROLE.superAdmin),
-  UserControllers.getSingleUser
+  "/me",
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.user),
+  UserControllers.getMe
 );
-router.get("/me", UserControllers.getMe);
 router.patch(
-  "/:email",
+  "/update-profile",
+  upload.single("photo"),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
   auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.user),
   validateRequest(updateUserValidationSchema),
   UserControllers.updateUserBasicInfo

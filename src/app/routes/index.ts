@@ -17,7 +17,7 @@ const moduleRoutes = [
     route: PositionRoute,
   },
   {
-    path: "/candidate",
+    path: "/candidates",
     route: CandidateRoute,
   },
   {

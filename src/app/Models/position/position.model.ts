@@ -6,9 +6,11 @@ const positionSchema = new Schema<TPosition, PositionModel>(
     title: { type: String, required: true },
     description: { type: String, required: true },
     duration: { type: String, required: true },
+    creator: { type: Schema.Types.ObjectId, ref:'User' },
+    applicationDeadline:{type: String},
     status: {
       type: String,
-      enum: ["pending", "ongoing", "terminated", "completed"],
+      enum: ["pending", "live", "terminated", "closed"],
       default: "pending",
       required: true,
     },
