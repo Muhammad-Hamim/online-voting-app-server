@@ -4,7 +4,6 @@ import { User } from "../user/user.model";
 import { TCandidate } from "./candidate.interface";
 import { Candidate } from "./candidate.model";
 import { Position } from "../position/position.model";
-import { USER_ROLE } from "../user/user.constant";
 
 const createCandidateIntoDB = async (payload: TCandidate) => {
   //check if user is exists

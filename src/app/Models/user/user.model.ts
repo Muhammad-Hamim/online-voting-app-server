@@ -1,9 +1,9 @@
-import { model, Query, Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 import { TUser, UserModel } from "./user.interface";
 import AppError from "../../errors/AppError";
 import httpStatus from "http-status";
-import bcrypt from "bcrypt";
 import config from "../../config";
+import  bcrypt  from 'bcrypt';
 
 const userSchema = new Schema<TUser, UserModel>(
   {

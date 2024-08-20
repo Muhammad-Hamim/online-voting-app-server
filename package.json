@@ -14,10 +14,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@types/bcrypt": "^5.0.2",
-    "@types/cookie-parser": "^1.4.7",
-    "@types/jsonwebtoken": "^9.0.6",
-    "@types/multer": "^1.4.11",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.4.0",
     "cookie-parser": "^1.4.6",
@@ -32,13 +28,17 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/multer": "^1.4.11",
     "@types/nodemailer": "^6.4.15",
-    "@typescript-eslint/eslint-plugin": "^7.17.0",
-    "@typescript-eslint/parser": "^7.17.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "cookie-parser": "^1.4.6",
-    "eslint": "^9.8.0",
+    "eslint": "^8.56.0",
     "multer": "^1.4.5-lts.1",
     "prettier": "^3.3.3",
     "ts-node-dev": "^2.0.0",

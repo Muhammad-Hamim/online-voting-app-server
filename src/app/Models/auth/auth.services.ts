@@ -1,13 +1,14 @@
-import httpStatus from "http-status";
+
 import AppError from "../../errors/AppError";
 import { User } from "../user/user.model";
 import { TJwtPayload, TLoginUser, TPasswordData } from "./auth.interface";
 import config from "../../config";
 import { generateToken, verifyToken } from "./auth.utils";
 import bcrypt from "bcrypt";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { sendResetEmail } from "../../utils/sendResetEmail";
 import { USER_ROLE } from "../user/user.constant";
+import  httpStatus  from 'http-status';
+import { JwtPayload } from "jsonwebtoken";
 
 const loginUserIntoDB = async (payload: TLoginUser) => {
   //checking If the user is exists
