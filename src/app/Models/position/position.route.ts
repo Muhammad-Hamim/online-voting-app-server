@@ -40,7 +40,7 @@ router.get(
 );
 router.patch(
   "/:id",
-  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  // auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   validateRequest(updatePositionValidationSchema),
   PositionControllers.updatePosition
 );

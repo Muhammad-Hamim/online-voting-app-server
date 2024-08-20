@@ -76,6 +76,13 @@ const updatePositionIntoDB = async (
       payload.endTime = endTime;
     }
   }
+  //if update duration without startTime then set a new endTime
+  if (payload.duration && !payload.startTime) {
+    const endTime = new Date(
+      position?.startTime.getTime() + parseDuration(payload.duration)
+    );
+    payload.endTime = endTime;
+  }
 
   const result = await Position.findByIdAndUpdate(id, payload, {
     new: true,
