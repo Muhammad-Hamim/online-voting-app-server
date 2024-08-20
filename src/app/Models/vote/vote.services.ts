@@ -7,12 +7,16 @@ import { Position } from "../position/position.model";
 import mongoose from "mongoose";
 import { Candidate } from "../candidate/candidate.model";
 const createVoteIntoDB = async (payload: TVote) => {
-  //check if user is exists
+  // Check if user exists
   const user = await User.isUserExists(payload?.email);
   if (!user || user?.isDeleted === true) {
-    throw new AppError(httpStatus.NOT_FOUND, "User does not exist or deleted");
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "User does not exist or is deleted"
+    );
   }
-  //check if position is exists and status is ongoing
+
+  // Check if position exists and its status is "live"
   const position = await Position.isPositionExists(payload.position.toString());
   if (
     !position ||
@@ -21,10 +25,24 @@ const createVoteIntoDB = async (payload: TVote) => {
   ) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
-      "position does not exist or deleted or status is not ongoing"
+      "Position does not exist, is deleted, or is not live"
     );
   }
-  //check if the candidate is applied for this position or not
+
+  // Check if the voting process has started
+  if (new Date(position.startTime) > new Date()) {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "Voting process hasn't started yet"
+    );
+  }
+
+  // Check if the voting process has ended
+  if (new Date(position?.endTime as Date) < new Date()) {
+    throw new AppError(httpStatus.FORBIDDEN, "Voting process has ended");
+  }
+
+  // Check if the candidate applied for this position
   const isCandidateAppliedForThisPosition = await Candidate.findOne({
     _id: payload?.candidate.toString(),
     position: payload?.position.toString(),
@@ -32,11 +50,11 @@ const createVoteIntoDB = async (payload: TVote) => {
   if (!isCandidateAppliedForThisPosition) {
     throw new AppError(
       httpStatus.FORBIDDEN,
-      "candidate is not applied for this position"
+      "Candidate is not applied for this position"
     );
   }
 
-  //check if user already voted to this position
+  // Check if the user already voted for this position
   const isUserAlreadyVoted = await Vote.isUserAlreadyVoted(
     payload.voter.toString(),
     payload.position.toString()
@@ -48,7 +66,7 @@ const createVoteIntoDB = async (payload: TVote) => {
     );
   }
 
-  // check if the user status is not approved
+  // Check if the candidate's status is "approved"
   const isCandidateStatusApproved = await Candidate.findOne({
     _id: payload.candidate.toString(),
     status: "approved",
@@ -59,16 +77,18 @@ const createVoteIntoDB = async (payload: TVote) => {
       "Candidate is not eligible to be voted for"
     );
   }
-  //start a session for the transaction
+
+  // Start a session for the transaction
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    //create a vote
+    // Create a vote
     const vote = await Vote.create([payload], { session });
     if (!vote) {
       throw new AppError(httpStatus.BAD_REQUEST, "Failed to create vote");
     }
-    //update the candidate's votes
+
+    // Update the candidate's votes
     const candidate = await Candidate.findByIdAndUpdate(
       payload.candidate.toString(),
       { $inc: { votes: 1 } },
@@ -80,11 +100,13 @@ const createVoteIntoDB = async (payload: TVote) => {
         "Failed to update candidate votes"
       );
     }
-    //commit the transaction
+
+    // Commit the transaction
     await session.commitTransaction();
     await session.endSession();
     return vote;
   } catch (error) {
+    // Abort the transaction in case of error
     await session.abortTransaction();
     await session.endSession();
     throw new AppError(httpStatus.BAD_REQUEST, "Failed to vote");
@@ -243,10 +265,10 @@ const getSingleUserVoteFromDB = async (email: string) => {
     .populate({
       path: "position",
       select: "title description creator",
-      populate:{
+      populate: {
         path: "creator",
-        select:"name email photo _id"
-      }
+        select: "name email photo _id",
+      },
     });
 
   return result;
@@ -269,10 +291,10 @@ const getMyVotesFromDB = async (email: string) => {
     .populate({
       path: "position",
       select: "title description creator",
-      populate:{
+      populate: {
         path: "creator",
-        select:"name email photo _id"
-      }
+        select: "name email photo _id",
+      },
     });
 
   return result;

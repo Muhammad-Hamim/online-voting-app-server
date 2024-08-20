@@ -59,9 +59,9 @@ const updatePositionIntoDB = async (
     throw new AppError(httpStatus.NOT_FOUND, "Position does not exists");
   }
   //check if the position status is "pending"
-  if (position?.status !== "pending") {
-    throw new AppError(httpStatus.FORBIDDEN, "Position status is not pending");
-  }
+  // if (position?.status !== "pending") {
+  //   throw new AppError(httpStatus.FORBIDDEN, "Position status is not pending");
+  // }
   //check if the position is deleted
   if (position?.isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, "Position is deleted");
@@ -78,8 +78,9 @@ const updatePositionIntoDB = async (
   }
   //if update duration without startTime then set a new endTime
   if (payload.duration && !payload.startTime) {
+    const startTime = new Date(position?.startTime);
     const endTime = new Date(
-      position?.startTime.getTime() + parseDuration(payload.duration)
+      startTime.getTime() + parseDuration(payload.duration)
     );
     payload.endTime = endTime;
   }
