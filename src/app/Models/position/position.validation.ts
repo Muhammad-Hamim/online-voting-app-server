@@ -18,7 +18,8 @@ export const createPositionValidationSchema = z.object({
       .enum(["pending", "live", "terminated", "closed"])
       .default("pending"),
     creator: z.string(),
-    applicationDeadline: z.string().optional(),
+    startTime: z.string(),
+    endTime: z.string().optional(),
     terminationMessage: z.string().optional(),
     maxVotes: z.number().int().positive(),
     maxCandidate: z.number().int().positive(),
@@ -37,7 +38,8 @@ export const updatePositionValidationSchema = z.object({
         "Duration must be in the format 'Xm', 'Xh', or 'Xd'."
       )
       .optional(),
-    applicationDeadline: z.string().optional(),
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
     maxVotes: z.number().int().positive().optional(),
     maxCandidate: z.number().int().positive().optional(),
   }),

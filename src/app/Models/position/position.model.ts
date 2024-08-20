@@ -7,7 +7,6 @@ const positionSchema = new Schema<TPosition, PositionModel>(
     description: { type: String, required: true },
     duration: { type: String, required: true },
     creator: { type: Schema.Types.ObjectId, ref:'User' },
-    applicationDeadline:{type: String},
     status: {
       type: String,
       enum: ["pending", "live", "terminated", "closed"],
@@ -15,6 +14,8 @@ const positionSchema = new Schema<TPosition, PositionModel>(
       required: true,
     },
     terminationMessage: { type: String },
+    startTime:{Type:Date},
+    endTime:{Type:Date},
     maxVotes: { type: Number, required: true },
     maxCandidate: { type: Number, required: true },
     isDeleted: { type: Boolean, default: false },

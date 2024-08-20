@@ -9,7 +9,8 @@ export interface TPosition {
   maxVotes: number;
   creator: Types.ObjectId;
   maxCandidate: number;
-  applicationDeadline?: string;
+  startTime: Date;
+  endTime?:Date;
   isDeleted: boolean;
 }
 

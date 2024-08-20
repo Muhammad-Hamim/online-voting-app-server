@@ -3,8 +3,15 @@ import { TPosition } from "./position.interface";
 import { Position } from "./position.model";
 import AppError from "../../errors/AppError";
 import { Candidate } from "../candidate/candidate.model";
+import { parseDuration } from "./position.utils";
 
 const createPositionIntoDB = async (payload: TPosition) => {
+  if (payload.startTime && payload.duration) {
+    const endTime = new Date(
+      new Date(payload.startTime).getTime() + parseDuration(payload.duration)
+    );
+    payload.endTime = endTime;
+  }
   const result = await Position.create(payload);
   return result;
 };
@@ -56,9 +63,20 @@ const updatePositionIntoDB = async (
     throw new AppError(httpStatus.FORBIDDEN, "Position status is not pending");
   }
   //check if the position is deleted
-  if (position?.isDeleted === true) {
+  if (position?.isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, "Position is deleted");
   }
+  // Calculate and update the end time if start time and duration are provided
+  if (payload.startTime) {
+    const startTime = new Date(payload.startTime);
+    const duration = payload.duration || position.duration;
+
+    if (duration) {
+      const endTime = new Date(startTime.getTime() + parseDuration(duration));
+      payload.endTime = endTime;
+    }
+  }
+
   const result = await Position.findByIdAndUpdate(id, payload, {
     new: true,
   });
@@ -73,6 +91,34 @@ const updatePositionStatusAndTerminationMessageIntoDB = async (
   if (!position) {
     throw new AppError(httpStatus.NOT_FOUND, "Position does not exists");
   }
+  if (position.isDeleted) {
+    throw new AppError(httpStatus.NOT_FOUND, "Position has been deleted!");
+  }
+  if (payload.status === "terminated" && !payload.terminationMessage) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Please provide termination message"
+    );
+  }
+  if (payload.status === "live" && position.status !== "live") {
+    const startTime = new Date();
+    const endTime = new Date(
+      startTime.getTime() + parseDuration(position.duration)
+    );
+
+    payload.startTime = startTime;
+    payload.endTime = endTime;
+  }
+  if (
+    (position.status === "closed" || position.status === "terminated") &&
+    (payload.status === "live" || payload.status === "pending")
+  ) {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "you can not update closed/terminated position to live/pending"
+    );
+  }
+
   const result = await Position.findOneAndUpdate({ _id: id }, payload, {
     new: true,
   });
