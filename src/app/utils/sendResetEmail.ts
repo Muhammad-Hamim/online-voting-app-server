@@ -4,7 +4,7 @@ import config from "../config";
 export const sendResetEmail = async (to: string, resetLink: string) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 587, // Use 587 for STARTTLS
+    port: config.NODE_ENV ==='Production' ? 465 : 587, // Use 587 for STARTTLS
     secure: config.NODE_ENV==='Production', // Set to true if using port 465 for SSL/TLS
     auth: {
       user: config.nodemailer_email as string,

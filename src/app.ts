@@ -12,8 +12,8 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
+      "https://online-voting-app-client.vercel.app",
       "http://localhost:5173", 
-      "https://online-voting-app-client.vercel.app"
     ],
     credentials: true,
   })

@@ -25,7 +25,6 @@ router.post(
 );
 router.post(
   "/logout",
-  
   AuthControllers.logoutUser
 );
 router.post(

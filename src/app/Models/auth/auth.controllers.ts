@@ -42,12 +42,19 @@ const loginAdmin = catchAsync(async (req, res) => {
 });
 
 const logoutUser = catchAsync(async (req, res) => {
-  const { refreshToken } = req.cookies;
-  await AuthServices.logoutUser(refreshToken);
+  const refreshToken = req.cookies.refreshToken; 
+  if (!refreshToken) {
+    return res.status(httpStatus.UNAUTHORIZED).json({
+      success: false,
+      message: "No refresh token provided",
+    });
+  }
   res.clearCookie("refreshToken", {
-    secure: config.NODE_ENV !== "Development",
+    secure: true,
     httpOnly: true,
   });
+  await AuthServices.logoutUser(refreshToken.refreshToken);
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -66,8 +73,15 @@ const changeUserPass = catchAsync(async (req, res) => {
   });
 });
 const refreshToken = catchAsync(async (req, res) => {
-  const { refreshToken } = req.cookies;
-  const result = await AuthServices.refreshToken(refreshToken.refreshToken);
+  const refreshToken = req.cookies.refreshToken; 
+  if (!refreshToken) {
+    return res.status(httpStatus.UNAUTHORIZED).json({
+      success: false,
+      message: "No refresh token provided",
+    });
+  }
+
+  const result = await AuthServices.refreshToken(refreshToken);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -75,6 +89,7 @@ const refreshToken = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
 const forgetPassword = catchAsync(async (req, res) => {
   const { email } = req.body;
   const result = await AuthServices.forgetPassword(email);
@@ -86,7 +101,7 @@ const forgetPassword = catchAsync(async (req, res) => {
   });
 });
 const resetPassword = catchAsync(async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = req.headers.authorization?.split(" ")[1];
   const result = await AuthServices.resetPassword(req.body, token as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
