@@ -4,8 +4,8 @@ import config from "../config";
 export const sendUserEmail = async (email: string, password: string) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: config.NODE_ENV ==='Production' ? 465 : 587,
-    secure: config.NODE_ENV === "Production",
+    port: config.NODE_ENV ==='production' ? 465 : 587,
+    secure: config.NODE_ENV === "production",
     auth: {
       user: config.nodemailer_email as string,
       pass: config.nodemailer_pass as string,
