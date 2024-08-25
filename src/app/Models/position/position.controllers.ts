@@ -81,6 +81,16 @@ const getAllPositionsWithCandidatesAndWinner = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const getAllPositionsWithCandidatesAndVoters = catchAsync(async (req, res) => {
+  const result =
+    await PositionServices.getAllPositionsWithCandidatesAndVotersFromDB(req.query);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "positions with candidates data retrieved successfully",
+    data: result,
+  });
+});
 export const PositionControllers = {
   createPosition,
   getAllPosition,
@@ -89,4 +99,5 @@ export const PositionControllers = {
   getCandidateForPosition,
   updatePositionStatusAndTerminationMessage,
   getAllPositionsWithCandidatesAndWinner,
+  getAllPositionsWithCandidatesAndVoters
 };

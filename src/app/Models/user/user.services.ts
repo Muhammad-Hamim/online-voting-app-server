@@ -2,11 +2,12 @@ import httpStatus from "http-status";
 import AppError from "../../errors/AppError";
 import { TUser } from "./user.interface";
 import { User } from "./user.model";
-import config from "../../config";
 import { JwtPayload } from "jsonwebtoken";
 import { sendImgToCloudinary } from "../../utils/sendImgToCloudinary";
 import { sendUserEmail } from "../../utils/sendUserEmail";
 import { generateRandomPassword } from "./user.utils";
+import QueryBuilder from "../../builder/QueryBuilder";
+import { userSearchableFields } from "./user.constant";
 
 const createUserIntoDB = async (payload: TUser, photo: any) => {
   const user = await User.isUserExists(payload?.email);
@@ -24,6 +25,7 @@ const createUserIntoDB = async (payload: TUser, photo: any) => {
   const path = photo?.path;
   const { secure_url } = await sendImgToCloudinary(imgName, path);
   payload.photo = secure_url;
+  payload.lastLogin = new Date();
   const result = await User.create(payload);
   //send email with password
   if (result) {
@@ -47,6 +49,7 @@ const createAdminIntoDB = async (payload: TUser, photo: any) => {
   const path = photo?.path;
   const { secure_url } = await sendImgToCloudinary(imgName, path);
   payload.photo = secure_url;
+  payload.lastLogin = new Date();
   //create admin
   const result = await User.create(payload);
   //send email with password
@@ -56,13 +59,12 @@ const createAdminIntoDB = async (payload: TUser, photo: any) => {
   return result;
 };
 
-const getAllUserFromDB = async () => {
-  const result = await User.find();
-  if (result.length) {
-    return result;
-  } else {
-    throw new AppError(httpStatus.NOT_FOUND, "no user found");
-  }
+const getAllUserFromDB = async (query: Record<string, unknown>) => {
+  const userQuery = new QueryBuilder(User.find(), query, "find").search(
+    userSearchableFields
+  );
+  const result = await userQuery.execute();
+  return result;
 };
 const getSingleUserFromDB = async (email: string) => {
   const user = await User.isUserExists(email);

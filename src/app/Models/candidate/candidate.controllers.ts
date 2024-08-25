@@ -55,12 +55,21 @@ const updateCandidateStatus = catchAsync(async (req, res) => {
     data: result,
   });
 });
-
+const getMyApplications = catchAsync(async (req, res) => {
+  const { email } = req.params;
+  const result = await CandidateServices.getMyApplicationFromDB(email, req.query);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Candidate data retrieved successfully",
+    data: result,
+  });
+});
 export const CandidateControllers = {
   createCandidate,
   getAllCandidate,
   getSingleCandidate,
   updateCandidate,
   updateCandidateStatus,
-  
+  getMyApplications
 };

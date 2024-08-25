@@ -13,12 +13,14 @@ const auth = (...requiredRoles: TUserRole[]) => {
     if (!token) {
       throw new AppError(httpStatus.UNAUTHORIZED, "unauthorized user");
     }
+    
     // check if the token is valid
     const decoded = verifyToken(token, config.JWT_ACCESS_SECRET as string);
     const { role, email, iat } = decoded;
     // check if user exists
     const user = await User.isUserExists(email);
     if (!user) {
+      console.log('hello not allowed')
       throw new AppError(httpStatus.NOT_FOUND, "User does not exist");
     }
 

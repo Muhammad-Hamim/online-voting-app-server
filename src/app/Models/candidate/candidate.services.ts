@@ -4,6 +4,8 @@ import { User } from "../user/user.model";
 import { TCandidate } from "./candidate.interface";
 import { Candidate } from "./candidate.model";
 import { Position } from "../position/position.model";
+import { getMyApplicationDetails } from "../../utils/query";
+import QueryBuilder from "../../builder/QueryBuilder";
 
 const createCandidateIntoDB = async (payload: TCandidate) => {
   //check if user is exists
@@ -103,10 +105,33 @@ const updateCandidateStatusIntoDB = async (
   return result;
 };
 
+const getMyApplicationFromDB = async (
+  email: string,
+  query: Record<string, unknown>
+) => {
+  //check if user is exists
+  const user = await User.isUserExists(email);
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "user does not exist");
+  }
+  const candidate = await Candidate.isCandidateExists(email);
+  if (!candidate) {
+    throw new AppError(httpStatus.NOT_FOUND, "candidate does not exists");
+  }
+  const applicationQuery = new QueryBuilder(
+    Candidate.aggregate(getMyApplicationDetails(email)),
+    query,
+    "aggregate"
+  ).sort();
+  const result = await applicationQuery.execute();
+  return result;
+};
+
 export const CandidateServices = {
   createCandidateIntoDB,
   getAllCandidatesFromDB,
   getSingleCandidateFromDB,
   updateCandidateIntoDB,
   updateCandidateStatusIntoDB,
+  getMyApplicationFromDB,
 };

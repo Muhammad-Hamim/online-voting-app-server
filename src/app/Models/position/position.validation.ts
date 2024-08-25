@@ -8,18 +8,12 @@ export const createPositionValidationSchema = z.object({
   body: z.object({
     title: z.string().min(3),
     description: z.string().min(5),
-    duration: z
-      .string()
-      .regex(
-        durationPattern,
-        "Duration must be in the format 'Xm', 'Xh', or 'Xd'."
-      ),
     status: z
       .enum(["pending", "live", "terminated", "closed"])
       .default("pending"),
     creator: z.string(),
     startTime: z.string(),
-    endTime: z.string().optional(),
+    endTime: z.string(),
     terminationMessage: z.string().optional(),
     maxVotes: z.number().int().positive(),
     maxCandidate: z.number().int().positive(),
@@ -31,13 +25,6 @@ export const updatePositionValidationSchema = z.object({
   body: z.object({
     title: z.string().min(3).optional(),
     description: z.string().min(5).optional(),
-    duration: z
-      .string()
-      .regex(
-        durationPattern,
-        "Duration must be in the format 'Xm', 'Xh', or 'Xd'."
-      )
-      .optional(),
     startTime: z.string().optional(),
     endTime: z.string().optional(),
     maxVotes: z.number().int().positive().optional(),

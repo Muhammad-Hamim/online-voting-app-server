@@ -1,4 +1,3 @@
-
 import AppError from "../../errors/AppError";
 import { User } from "../user/user.model";
 import { TJwtPayload, TLoginUser, TPasswordData } from "./auth.interface";
@@ -7,7 +6,7 @@ import { generateToken, verifyToken } from "./auth.utils";
 import bcrypt from "bcrypt";
 import { sendResetEmail } from "../../utils/sendResetEmail";
 import { USER_ROLE } from "../user/user.constant";
-import  httpStatus  from 'http-status';
+import httpStatus from "http-status";
 import { JwtPayload } from "jsonwebtoken";
 
 const loginUserIntoDB = async (payload: TLoginUser) => {
@@ -36,6 +35,15 @@ const loginUserIntoDB = async (payload: TLoginUser) => {
   if (!isPasswordMatched) {
     throw new AppError(httpStatus.UNAUTHORIZED, "Invalid password");
   }
+  // Update user last login time
+  const result = await User.findOneAndUpdate(
+    { email: user.email },
+    { lastLogin: new Date() },
+    {
+      new: true,
+    }
+  );
+
   //access granted: send accessToken, Refresh token
   //create token and sent to the client
   const jwtPayload: TJwtPayload = {
@@ -80,6 +88,16 @@ const loginAdminIntoDB = async (payload: TLoginUser) => {
   if (!isPasswordMatched) {
     throw new AppError(httpStatus.UNAUTHORIZED, "Invalid password");
   }
+
+  // Update user last login time
+  const result = await User.findOneAndUpdate(
+    { email: user.email },
+    { lastLogin: new Date() },
+    {
+      new: true,
+    }
+  );
+
   //access granted: send accessToken, Refresh token
   //create token and sent to the client
   const jwtPayload: TJwtPayload = {

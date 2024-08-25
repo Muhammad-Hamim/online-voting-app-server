@@ -25,12 +25,18 @@ const candidateSchema = new Schema<TCandidate, CandidateModel>(
 candidateSchema.statics.isCandidateExists = async function (email: string) {
   return await Candidate.findOne({ email });
 };
+candidateSchema.statics.isCandidateExistsById = async function (
+  candidate: string,
+  position: string
+) {
+  return await Candidate.findOne({ _id: candidate, position });
+};
 
 candidateSchema.statics.isCandidateAlreadyApplied = async function (
   candidate: string,
   position: string
 ) {
-  return await Candidate.findOne({candidate, position });
+  return await Candidate.findOne({ candidate, position });
 };
 candidateSchema.statics.isMaxCandidateAlreadyFilled = async function (
   position: string

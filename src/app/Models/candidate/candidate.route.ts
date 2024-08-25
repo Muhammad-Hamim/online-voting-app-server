@@ -18,10 +18,16 @@ router.post(
   CandidateControllers.createCandidate
 );
 router.get(
+  "/my-applications/:email",
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.user),
+  CandidateControllers.getMyApplications
+);
+router.get(
   "/",
   auth(USER_ROLE.superAdmin),
   CandidateControllers.getAllCandidate
 );
+
 router.get(
   "/:email",
   auth(USER_ROLE.superAdmin, USER_ROLE.user),

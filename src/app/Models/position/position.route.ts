@@ -34,6 +34,11 @@ router.get(
   PositionControllers.getAllPositionsWithCandidatesAndWinner
 );
 router.get(
+  "/get-positions-with-candidates-and-voters",
+  auth(USER_ROLE.user, USER_ROLE.admin, USER_ROLE.superAdmin),
+  PositionControllers.getAllPositionsWithCandidatesAndVoters
+);
+router.get(
   "/get-candidate-for-position/:id",
   auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.user),
   PositionControllers.getCandidateForPosition
@@ -46,7 +51,7 @@ router.patch(
 );
 router.patch(
   "/update-status/:id",
-  auth(USER_ROLE.superAdmin),
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   validateRequest(updatePositionStatusAndTerminationMessageValidationSchema),
   PositionControllers.updatePositionStatusAndTerminationMessage
 );

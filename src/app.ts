@@ -12,7 +12,6 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-      "https://online-voting-app.netlify.app",
       "https://online-voting-app-client.vercel.app",
       "http://localhost:5173",
     ],

@@ -8,6 +8,7 @@ export interface TUser {
   password: string;
   passwordChangedAt?: Date;
   photo: string;
+  lastLogin?:Date;
   role: "user" | "admin" | "superAdmin";
   status?: "pending" | "active" | "blocked";
   isDeleted: boolean;

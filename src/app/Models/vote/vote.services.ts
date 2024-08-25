@@ -9,10 +9,21 @@ import { Candidate } from "../candidate/candidate.model";
 const createVoteIntoDB = async (payload: TVote) => {
   // Check if user exists
   const user = await User.isUserExists(payload?.email);
-  if (!user || user?.isDeleted === true) {
+  if (!user || user?.isDeleted === true || user?.status === "blocked") {
     throw new AppError(
       httpStatus.NOT_FOUND,
       "User does not exist or is deleted"
+    );
+  }
+  // Check if the user already voted for this position
+  const isUserAlreadyVoted = await Vote.isUserAlreadyVoted(
+    payload.voter.toString(),
+    payload.position.toString()
+  );
+  if (isUserAlreadyVoted) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "User has already voted for this position"
     );
   }
 
@@ -43,39 +54,29 @@ const createVoteIntoDB = async (payload: TVote) => {
   }
 
   // Check if the candidate applied for this position
-  const isCandidateAppliedForThisPosition = await Candidate.findOne({
-    _id: payload?.candidate.toString(),
-    position: payload?.position.toString(),
-  });
+  const isCandidateAppliedForThisPosition =
+    await Candidate.isCandidateExistsById(
+      payload?.candidate.toString(),
+      payload?.position.toString()
+    );
   if (!isCandidateAppliedForThisPosition) {
     throw new AppError(
       httpStatus.FORBIDDEN,
       "Candidate is not applied for this position"
     );
   }
-
-  // Check if the user already voted for this position
-  const isUserAlreadyVoted = await Vote.isUserAlreadyVoted(
-    payload.voter.toString(),
-    payload.position.toString()
-  );
-  if (isUserAlreadyVoted) {
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      "User has already voted for this position"
-    );
-  }
-
   // Check if the candidate's status is "approved"
-  const isCandidateStatusApproved = await Candidate.findOne({
-    _id: payload.candidate.toString(),
-    status: "approved",
-  });
-  if (!isCandidateStatusApproved) {
+  if (isCandidateAppliedForThisPosition.status !== "approved") {
     throw new AppError(
       httpStatus.BAD_REQUEST,
       "Candidate is not eligible to be voted for"
     );
+  }
+
+  //check if maximum votes is already casted or not
+  const votes = await Vote.find({ position: payload.position });
+  if (votes.length >= position.maxVotes) {
+    throw new AppError(httpStatus.FORBIDDEN, "max votes has already casted");
   }
 
   // Start a session for the transaction

@@ -3,7 +3,7 @@ import { TUser, UserModel } from "./user.interface";
 import AppError from "../../errors/AppError";
 import httpStatus from "http-status";
 import config from "../../config";
-import  bcrypt  from 'bcrypt';
+import bcrypt from "bcrypt";
 
 const userSchema = new Schema<TUser, UserModel>(
   {
@@ -22,6 +22,7 @@ const userSchema = new Schema<TUser, UserModel>(
       type: String,
       enum: ["in-progress", "active", "blocked"],
     },
+    lastLogin: { type: Date },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
@@ -40,12 +41,10 @@ userSchema.pre("save", async function (next) {
     user.status = "pending";
   }
   next();
-});// After creating or updating a user, remove the password field from the returned document
+}); // After creating or updating a user, remove the password field from the returned document
 userSchema.post("save", function (doc, next) {
   (doc.password = ""), next();
 });
-
-
 
 // Middleware to ensure password is not returned during aggregation
 userSchema.pre("aggregate", function (next) {

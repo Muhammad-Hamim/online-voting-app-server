@@ -4,13 +4,19 @@ import { Position } from "./position.model";
 import AppError from "../../errors/AppError";
 import { Candidate } from "../candidate/candidate.model";
 import { parseDuration } from "./position.utils";
+import {
+  getAllPositionsWithCandidatesAndWinnerQuery,
+  getPositionsWithCandidatesAndVotersQuery,
+} from "../../utils/query";
+import QueryBuilder from "../../builder/QueryBuilder";
+import { positionSearchableField } from "./position.constant";
 
 const createPositionIntoDB = async (payload: TPosition) => {
-  if (payload.startTime && payload.duration) {
-    const endTime = new Date(
-      new Date(payload.startTime).getTime() + parseDuration(payload.duration)
+  if (new Date(payload.startTime) > new Date(payload.endTime)) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "end time can not be before start time"
     );
-    payload.endTime = endTime;
   }
   const result = await Position.create(payload);
   return result;
@@ -59,32 +65,24 @@ const updatePositionIntoDB = async (
     throw new AppError(httpStatus.NOT_FOUND, "Position does not exists");
   }
   //check if the position status is "pending"
-  // if (position?.status !== "pending") {
-  //   throw new AppError(httpStatus.FORBIDDEN, "Position status is not pending");
-  // }
+  if (position?.status !== "pending") {
+    throw new AppError(httpStatus.FORBIDDEN, "Position status is not pending");
+  }
   //check if the position is deleted
   if (position?.isDeleted) {
     throw new AppError(httpStatus.FORBIDDEN, "Position is deleted");
   }
   // Calculate and update the end time if start time and duration are provided
-  if (payload.startTime) {
-    const startTime = new Date(payload.startTime);
-    const duration = payload.duration || position.duration;
-
-    if (duration) {
-      const endTime = new Date(startTime.getTime() + parseDuration(duration));
-      payload.endTime = endTime;
+  if (payload.startTime || payload.endTime) {
+    const startTime = new Date(payload.startTime || position.startTime);
+    const endTime = new Date(payload.endTime || position.endTime);
+    if (endTime < startTime) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "end time can not be before start time"
+      );
     }
   }
-  //if update duration without startTime then set a new endTime
-  if (payload.duration && !payload.startTime) {
-    const startTime = new Date(position?.startTime);
-    const endTime = new Date(
-      startTime.getTime() + parseDuration(payload.duration)
-    );
-    payload.endTime = endTime;
-  }
-
   const result = await Position.findByIdAndUpdate(id, payload, {
     new: true,
   });
@@ -94,6 +92,12 @@ const updatePositionStatusAndTerminationMessageIntoDB = async (
   id: string,
   payload: Partial<TPosition>
 ) => {
+  //get all approved candidate
+  const candidate = await Candidate.find({
+    position: id,
+    status: "approved",
+  }).select("status");
+
   // check if the position is exist
   const position = await Position.isPositionExists(id);
   if (!position) {
@@ -108,14 +112,16 @@ const updatePositionStatusAndTerminationMessageIntoDB = async (
       "Please provide termination message"
     );
   }
+  if (payload.status === "terminated") {
+    payload.endTime = new Date();
+  }
   if (payload.status === "live" && position.status !== "live") {
+    if (candidate.length < 2) {
+      throw new AppError(httpStatus.FORBIDDEN, "No approved candidate found");
+    }
     const startTime = new Date();
-    const endTime = new Date(
-      startTime.getTime() + parseDuration(position.duration)
-    );
 
     payload.startTime = startTime;
-    payload.endTime = endTime;
   }
   if (
     (position.status === "closed" || position.status === "terminated") &&
@@ -148,107 +154,28 @@ const getCandidateForPositionFromDB = async (position: string) => {
   }
 };
 const getAllPositionsWithCandidatesAndWinnerFromDB = async () => {
-  const result = await Position.aggregate([
-    // Step 1: Lookup candidates for each position
-    {
-      $lookup: {
-        from: "candidates",
-        localField: "_id",
-        foreignField: "position",
-        as: "candidates",
-      },
-    },
-    // Step 2: Unwind the candidates array
-    {
-      $unwind: {
-        path: "$candidates",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    // Step 3: Lookup user details for each candidate
-    {
-      $lookup: {
-        from: "users",
-        localField: "candidates.candidate",
-        foreignField: "_id",
-        as: "userDetails",
-      },
-    },
-    // Step 4: Combine candidate info with user details
-    {
-      $addFields: {
-        "candidates.name": { $arrayElemAt: ["$userDetails.name", 0] },
-        "candidates.email": { $arrayElemAt: ["$userDetails.email", 0] },
-        "candidates.photo": { $arrayElemAt: ["$userDetails.photo", 0] },
-        "candidates.studentId": { $arrayElemAt: ["$userDetails.studentId", 0] },
-      },
-    },
-    // Step 5: Group back the candidates array
-    {
-      $group: {
-        _id: "$_id",
-        title: { $first: "$title" },
-        description: { $first: "$description" },
-        duration: { $first: "$duration" },
-        creator: { $first: "$creator" },
-        applicationDeadline: { $first: "$applicationDeadline" },
-        status: { $first: "$status" },
-        terminationMessage: { $first: "$terminationMessage" },
-        maxVotes: { $first: "$maxVotes" },
-        maxCandidate: { $first: "$maxCandidate" },
-        isDeleted: { $first: "$isDeleted" },
-        createdAt: { $first: "$createdAt" },
-        updatedAt: { $first: "$updatedAt" },
-        candidates: { $push: "$candidates" },
-      },
-    },
-    // Step 6: Determine the winner
-    {
-      $addFields: {
-        winner: {
-          $arrayElemAt: [
-            {
-              $filter: {
-                input: "$candidates",
-                as: "candidate",
-                cond: {
-                  $eq: ["$$candidate.votes", { $max: "$candidates.votes" }],
-                },
-              },
-            },
-            0,
-          ],
-        },
-      },
-    },
-    // Step 7: Project the final result
-    {
-      $project: {
-        title: 1,
-        description: 1,
-        creator: 1,
-        status: 1,
-        "candidates._id": 1,
-        "candidates.email": 1,
-        "candidates.studentId": 1,
-        "candidates.votes": 1,
-        "candidates.status": 1,
-        "candidates.message": 1,
-        "candidates.name": 1,
-        "candidates.photo": 1,
-        "winner._id": 1,
-        "winner.email": 1,
-        "winner.studentId": 1,
-        "winner.status": 1,
-        "winner.votes": 1,
-        "winner.message": 1,
-        "winner.name": 1,
-        "winner.photo": 1,
-      },
-    },
-  ]);
+  const result = await Position.aggregate(
+    getAllPositionsWithCandidatesAndWinnerQuery
+  );
   return result;
 };
+
+const getAllPositionsWithCandidatesAndVotersFromDB = async (
+  query: Record<string, unknown>
+) => {
+  const positionQuery = new QueryBuilder(
+    Position.aggregate(getPositionsWithCandidatesAndVotersQuery),
+    query,
+    "aggregate"
+  )
+    .search(positionSearchableField)
+    .sort();
+
+  const result = await positionQuery.execute();
+
+  return result;
+};
+
 export const PositionServices = {
   createPositionIntoDB,
   getAllPositionsFromDB,
@@ -257,4 +184,5 @@ export const PositionServices = {
   getCandidateForPositionFromDB,
   updatePositionStatusAndTerminationMessageIntoDB,
   getAllPositionsWithCandidatesAndWinnerFromDB,
+  getAllPositionsWithCandidatesAndVotersFromDB,
 };

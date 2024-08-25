@@ -3,14 +3,13 @@ import { Model, Types } from "mongoose";
 export interface TPosition {
   title: string;
   description: string;
-  duration: string;
-  status: "pending" | "live" | "terminated" | "closed";
+  status?: "pending" | "live" | "terminated" | "closed";
   terminationMessage?: string;
   maxVotes: number;
   creator: Types.ObjectId;
   maxCandidate: number;
   startTime: Date;
-  endTime?:Date;
+  endTime:Date;
   isDeleted: boolean;
 }
 
