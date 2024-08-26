@@ -7,9 +7,9 @@ export interface TPosition {
   terminationMessage?: string;
   maxVotes: number;
   creator: Types.ObjectId;
-  maxCandidate: number;
+  maxCandidates: number;
   startTime: Date;
-  endTime:Date;
+  endTime: Date;
   isDeleted: boolean;
 }
 

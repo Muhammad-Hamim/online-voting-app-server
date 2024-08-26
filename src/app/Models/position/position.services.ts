@@ -15,7 +15,13 @@ const createPositionIntoDB = async (payload: TPosition) => {
   if (new Date(payload.startTime) > new Date(payload.endTime)) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
-      "end time can not be before start time"
+      "start time must be before end time"
+    );
+  }
+  if (new Date(payload.startTime) < new Date()) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "start time must be after current time"
     );
   }
   const result = await Position.create(payload);
@@ -153,10 +159,15 @@ const getCandidateForPositionFromDB = async (position: string) => {
     throw new AppError(httpStatus.NOT_FOUND, "no candidate found");
   }
 };
-const getAllPositionsWithCandidatesAndWinnerFromDB = async () => {
-  const result = await Position.aggregate(
-    getAllPositionsWithCandidatesAndWinnerQuery
-  );
+const getAllPositionsWithCandidatesAndWinnerFromDB = async (
+  query: Record<string, unknown>
+) => {
+  const positionQuery = new QueryBuilder(
+    Position.aggregate(getAllPositionsWithCandidatesAndWinnerQuery),
+    query,
+    "aggregate"
+  ).sort();
+  const result = await positionQuery.execute();
   return result;
 };
 
@@ -175,6 +186,27 @@ const getAllPositionsWithCandidatesAndVotersFromDB = async (
 
   return result;
 };
+const updatePositionStatuses = async (): Promise<void> => {
+  const now = new Date().toISOString(); // Convert the current time to the same string format
+
+  // Update positions where the startTime has passed and status is still 'pending'
+  await Position.updateMany(
+    {
+      startTime: { $lte: now }, // Compare the string representation
+      status: "pending",
+    },
+    { status: "live" }
+  );
+
+  // Update positions where the endTime has passed and status is still 'live'
+  await Position.updateMany(
+    {
+      endTime: { $lte: now }, // Compare the string representation
+      status: "live",
+    },
+    { status: "closed" }
+  );
+};
 
 export const PositionServices = {
   createPositionIntoDB,
@@ -185,4 +217,5 @@ export const PositionServices = {
   updatePositionStatusAndTerminationMessageIntoDB,
   getAllPositionsWithCandidatesAndWinnerFromDB,
   getAllPositionsWithCandidatesAndVotersFromDB,
+  updatePositionStatuses,
 };

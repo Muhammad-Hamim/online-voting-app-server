@@ -60,9 +60,9 @@ const createAdminIntoDB = async (payload: TUser, photo: any) => {
 };
 
 const getAllUserFromDB = async (query: Record<string, unknown>) => {
-  const userQuery = new QueryBuilder(User.find(), query, "find").search(
-    userSearchableFields
-  );
+  const userQuery = new QueryBuilder(User.find(), query, "find")
+    .search(userSearchableFields)
+    .paginate();
   const result = await userQuery.execute();
   return result;
 };

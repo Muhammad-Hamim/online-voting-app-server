@@ -2,7 +2,6 @@ import { z } from "zod";
 import AppError from "../../errors/AppError";
 import httpStatus from "http-status";
 
-const durationPattern = /^(?:\d+d|\d+h|\d+m)$/;
 
 export const createPositionValidationSchema = z.object({
   body: z.object({
@@ -14,9 +13,8 @@ export const createPositionValidationSchema = z.object({
     creator: z.string(),
     startTime: z.string(),
     endTime: z.string(),
-    terminationMessage: z.string().optional(),
     maxVotes: z.number().int().positive(),
-    maxCandidate: z.number().int().positive(),
+    maxCandidates: z.number().int().positive(),
     isDeleted: z.boolean().default(false),
   }),
 });

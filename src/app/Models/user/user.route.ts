@@ -62,7 +62,7 @@ router.patch(
 );
 router.patch(
   "/update-user-status-role/:email",
-  auth(USER_ROLE.superAdmin),
+  auth(USER_ROLE.superAdmin,USER_ROLE.admin),
   validateRequest(updateUserRoleAndStatusValidationSchema),
   UserControllers.updateUserRoleAndStatus
 );

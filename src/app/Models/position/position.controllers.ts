@@ -73,7 +73,7 @@ const getCandidateForPosition = catchAsync(async (req, res) => {
 });
 const getAllPositionsWithCandidatesAndWinner = catchAsync(async (req, res) => {
   const result =
-    await PositionServices.getAllPositionsWithCandidatesAndWinnerFromDB();
+    await PositionServices.getAllPositionsWithCandidatesAndWinnerFromDB(req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

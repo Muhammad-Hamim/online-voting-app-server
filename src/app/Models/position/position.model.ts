@@ -15,7 +15,7 @@ const positionSchema = new Schema<TPosition, PositionModel>(
     startTime: { type: Date, required: true },
     endTime: { type: Date, required: true },
     maxVotes: { type: Number, required: true },
-    maxCandidate: { type: Number, required: true },
+    maxCandidates: { type: Number, required: true },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }

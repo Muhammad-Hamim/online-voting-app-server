@@ -41,7 +41,7 @@ const createCandidateIntoDB = async (payload: TCandidate) => {
     );
   }
   //check if the maximum candidate is already filled
-  const maxCandidateNumber = position?.maxCandidate;
+  const maxCandidateNumber = position?.maxCandidates;
   const appliedApprovedCandidate = await Candidate.isMaxCandidateAlreadyFilled(
     payload.position.toString()
   );
