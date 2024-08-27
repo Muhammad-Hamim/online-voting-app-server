@@ -15,7 +15,11 @@ router.post(
 );
 router.get("/", auth(USER_ROLE.superAdmin), VoteControllers.getAllVote);
 router.get("/get-my-votes", auth(USER_ROLE.user), VoteControllers.getMyVotes);
-router.get("/:email", VoteControllers.getSingleUserVote);
+router.get(
+  "/single-user-votes/:email",
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  VoteControllers.getSingleUserVote
+);
 router.get(
   "/:candidate/:position",
   auth(USER_ROLE.admin, USER_ROLE.superAdmin),

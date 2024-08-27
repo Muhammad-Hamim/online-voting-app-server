@@ -152,37 +152,49 @@ export const getPositionsWithCandidatesAndVotersQuery = [
       from: "votes", // Collection name for votes
       localField: "candidates._id",
       foreignField: "candidate",
-      as: "candidates.voters",
+      as: "voterVotes",
     },
   },
+
   {
     $lookup: {
       from: "users", // Collection name for users (voter details)
-      localField: "candidates.voters.voter",
+      localField: "voterVotes.voter",
       foreignField: "_id",
       as: "votersDetails",
     },
   },
   {
     $addFields: {
-      "candidates.voters": {
+      voterVotes: {
         $map: {
-          input: {
-            $filter: {
-              input: "$votersDetails",
-              as: "voterDetail",
-              cond: { $in: ["$$voterDetail._id", "$candidates.voters.voter"] },
-            },
-          },
-          as: "voter",
+          input: "$voterVotes",
+          as: "vote",
           in: {
-            _id: "$$voter._id",
-            email: "$$voter.email",
-            createdAt: { $first: "$candidates.voters.createdAt" },
-            updatedAt: { $first: "$candidates.voters.updatedAt" },
-            name: "$$voter.name",
-            studentId: "$$voter.studentId",
-            photo: "$$voter.photo",
+            $let: {
+              vars: {
+                voterDetail: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: "$votersDetails",
+                        as: "voterDetail",
+                        cond: { $eq: ["$$voterDetail._id", "$$vote.voter"] },
+                      },
+                    },
+                    0,
+                  ],
+                },
+              },
+              in: {
+                _id: "$$voterDetail._id",
+                email: "$$voterDetail.email",
+                name: "$$voterDetail.name",
+                studentId: "$$voterDetail.studentId",
+                photo: "$$voterDetail.photo",
+                createdAt: "$$vote.createdAt",
+              },
+            },
           },
         },
       },
@@ -215,7 +227,7 @@ export const getPositionsWithCandidatesAndVotersQuery = [
           name: "$candidates.userDetails.name",
           photo: "$candidates.userDetails.photo",
           studentId: "$candidates.userDetails.studentId",
-          voters: "$candidates.voters",
+          voters: "$voterVotes",
         },
       },
     },
