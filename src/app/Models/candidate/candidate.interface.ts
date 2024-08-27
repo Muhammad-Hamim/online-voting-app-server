@@ -19,7 +19,7 @@ export interface AggregatedResult extends Partial<TCandidate> {
 }
 
 export interface CandidateModel extends Model<TCandidate> {
-  isCandidateExists(email: string): Promise<TCandidate | null>;
+  isCandidateExists(id: string): Promise<TCandidate | null>;
   isCandidateExistsById(
     candidate: string,
     position: string

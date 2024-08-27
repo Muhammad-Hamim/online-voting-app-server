@@ -11,7 +11,7 @@ const loginUser = catchAsync(async (req, res) => {
   res.cookie("refreshToken", refreshToken, {
     secure: config.NODE_ENV==='production',
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "none",
   });
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -26,7 +26,7 @@ const loginAdmin = catchAsync(async (req, res) => {
   res.cookie("refreshToken", refreshToken, {
     secure: config.NODE_ENV==='production',
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "none",
   });
   sendResponse(res, {
     statusCode: httpStatus.OK,

@@ -22,11 +22,11 @@ router.get(
   auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.user),
   CandidateControllers.getMyApplications
 );
-router.get(
-  "/",
-  auth(USER_ROLE.superAdmin),
-  CandidateControllers.getAllCandidate
-);
+// router.get(
+//   "/",
+//   auth(USER_ROLE.superAdmin),
+//   CandidateControllers.getAllCandidate
+// );
 
 router.get(
   "/:email",
@@ -41,7 +41,7 @@ router.patch(
   CandidateControllers.updateCandidate
 );
 router.patch(
-  "/update-candidate-status/:email",
+  "/update-candidate-status/:id",
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   validateRequest(updateCandidateStatusValidationSchema),
   CandidateControllers.updateCandidateStatus

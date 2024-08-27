@@ -74,10 +74,10 @@ const getSingleCandidateFromDB = async (email: string) => {
 };
 
 const updateCandidateIntoDB = async (
-  email: string,
+  id: string,
   payload: Partial<TCandidate>
 ) => {
-  const candidate = await Candidate.isCandidateExists(email);
+  const candidate = await Candidate.isCandidateExists(id);
   if (!candidate) {
     throw new AppError(httpStatus.NOT_FOUND, "candidate does not exists");
   }
@@ -85,21 +85,43 @@ const updateCandidateIntoDB = async (
     throw new AppError(httpStatus.FORBIDDEN, "candidate is already approved");
   }
 
-  const result = await Candidate.findOneAndUpdate({ email }, payload, {
+  const result = await Candidate.findByIdAndUpdate(id, payload, {
     new: true,
   });
   return result;
 };
 
 const updateCandidateStatusIntoDB = async (
-  email: string,
+  id: string,
   payload: Partial<TCandidate>
 ) => {
-  const candidate = await Candidate.isCandidateExists(email);
+  //check candidate existence
+  const candidate = await Candidate.isCandidateExists(id);
   if (!candidate) {
     throw new AppError(httpStatus.NOT_FOUND, "candidate does not exists");
   }
-  const result = await Candidate.findOneAndUpdate({ email }, payload, {
+  //check candidate status
+  if (candidate.status === payload.status) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `candidate status is already ${payload.status}`
+    );
+  }
+  //check position existence
+  const position = await Position.isPositionExists(
+    candidate?.position.toString()
+  );
+  if (!position) {
+    throw new AppError(httpStatus.NOT_FOUND, "position does not exists");
+  }
+  //check position status
+  if (position.status !== "pending") {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "position status is not pending"
+    );
+  }
+  const result = await Candidate.findByIdAndUpdate(id, payload, {
     new: true,
   });
   return result;
@@ -113,10 +135,6 @@ const getMyApplicationFromDB = async (
   const user = await User.isUserExists(email);
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "user does not exist");
-  }
-  const candidate = await Candidate.isCandidateExists(email);
-  if (!candidate) {
-    throw new AppError(httpStatus.NOT_FOUND, "candidate does not exists");
   }
   const applicationQuery = new QueryBuilder(
     Candidate.aggregate(getMyApplicationDetails(email)),

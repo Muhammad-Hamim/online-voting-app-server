@@ -22,8 +22,8 @@ const candidateSchema = new Schema<TCandidate, CandidateModel>(
   { timestamps: true }
 );
 
-candidateSchema.statics.isCandidateExists = async function (email: string) {
-  return await Candidate.findOne({ email });
+candidateSchema.statics.isCandidateExists = async function (id: string) {
+  return await Candidate.findById(id);
 };
 candidateSchema.statics.isCandidateExistsById = async function (
   candidate: string,

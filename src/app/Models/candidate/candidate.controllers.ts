@@ -46,8 +46,11 @@ const updateCandidate = catchAsync(async (req, res) => {
   });
 });
 const updateCandidateStatus = catchAsync(async (req, res) => {
-  const { email } = req.params;
-  const result = await CandidateServices.updateCandidateIntoDB(email, req.body);
+  const { id } = req.params;
+  const result = await CandidateServices.updateCandidateStatusIntoDB(
+    id,
+    req.body
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -57,7 +60,10 @@ const updateCandidateStatus = catchAsync(async (req, res) => {
 });
 const getMyApplications = catchAsync(async (req, res) => {
   const { email } = req.params;
-  const result = await CandidateServices.getMyApplicationFromDB(email, req.query);
+  const result = await CandidateServices.getMyApplicationFromDB(
+    email,
+    req.query
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -71,5 +77,5 @@ export const CandidateControllers = {
   getSingleCandidate,
   updateCandidate,
   updateCandidateStatus,
-  getMyApplications
+  getMyApplications,
 };

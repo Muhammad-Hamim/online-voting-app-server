@@ -34,7 +34,7 @@ router.post(
   UserControllers.createAdmin
 );
 router.get(
-  "/",
+  "/all-users",
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   UserControllers.getAllUser
 );
@@ -44,7 +44,7 @@ router.get(
   UserControllers.getMe
 );
 router.get(
-  "/:email",
+  "/single-user/:email",
   auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   UserControllers.getSingleUser
 );
@@ -67,7 +67,7 @@ router.patch(
   UserControllers.updateUserRoleAndStatus
 );
 router.delete(
-  "/:email",
+  "/delete-user/:email",
   auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.user),
   UserControllers.deleteUser
 );
