@@ -2,8 +2,12 @@ import { UserServices } from "./user.services";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import httpStatus from "http-status";
+import AppError from "../../errors/AppError";
 
 const createUser = catchAsync(async (req, res) => {
+  if (!req.file) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Photo is required");
+  }
   const result = await UserServices.createUserIntoDB(req.body, req.file);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -12,7 +16,11 @@ const createUser = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
 const createAdmin = catchAsync(async (req, res) => {
+  if (!req.file) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Photo is required");
+  }
   const result = await UserServices.createAdminIntoDB(req.body, req.file);
   sendResponse(res, {
     statusCode: httpStatus.OK,

@@ -2,7 +2,6 @@ import { v2 as cloudinary } from "cloudinary";
 import config from "../config";
 import AppError from "../errors/AppError";
 import httpStatus from "http-status";
-import fs from "fs";
 import multer from "multer";
 
 cloudinary.config({
@@ -11,36 +10,24 @@ cloudinary.config({
   api_secret: config.CLOUDINARY_API_SECRET,
 });
 
-export const sendImgToCloudinary = (imageName: string, path: string) => {
-  return (async function () {
-    try {
-      // Upload an image
-      const uploadResult = await cloudinary.uploader.upload(path, {
-        public_id: imageName,
-      });
-      fs.unlink(path, (err) => {
-        if (err) {
-          throw err;
-        } else {
-          console.log("file is deleted");
+export const sendImgToCloudinary = async (imageName: string, buffer: Buffer): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { public_id: imageName },
+      (error, result) => {
+        if (error) {
+          reject(new AppError(httpStatus.BAD_REQUEST, "Failed to upload photo"));
+        } else if (result) {
+          resolve(result.secure_url);
         }
-      });
-      //return the uploaded img link
-      return uploadResult;
-    } catch (error) {
-      throw new AppError(httpStatus.BAD_REQUEST, "failed to upload photo");
-    }
-  })();
-};
+      }
+    );
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, process.cwd() + "/uploads/");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix);
-  },
-});
+    // Pipe the buffer into the upload stream
+    uploadStream.end(buffer);
+  });
+};
+// Use memory storage instead of disk storage
+const storage = multer.memoryStorage();
 
 export const upload = multer({ storage: storage });

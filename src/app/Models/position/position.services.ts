@@ -10,8 +10,10 @@ import {
 } from "../../utils/query";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { positionSearchableField } from "./position.constant";
+import { Types } from "mongoose";
 
 const createPositionIntoDB = async (payload: TPosition) => {
+  console.log(payload)
   if (new Date(payload.startTime) > new Date(payload.endTime)) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
@@ -174,13 +176,18 @@ const getAllPositionsWithCandidatesAndWinnerFromDB = async (
 const getAllPositionsWithCandidatesAndVotersFromDB = async (
   query: Record<string, unknown>
 ) => {
+  if (query["creator._id"]) {
+    // Convert _id to ObjectId only if it's present
+    query["creator._id"] = new Types.ObjectId(query["creator._id"] as string);
+  }
   const positionQuery = new QueryBuilder(
     Position.aggregate(getPositionsWithCandidatesAndVotersQuery),
     query,
     "aggregate"
   )
     .search(positionSearchableField)
-    .sort();
+    .sort()
+    .filter();
 
   const result = await positionQuery.execute();
 

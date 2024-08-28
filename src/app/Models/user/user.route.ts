@@ -9,6 +9,8 @@ import {
 import auth from "../../middlewares/auth";
 import { USER_ROLE } from "./user.constant";
 import { upload } from "../../utils/sendImgToCloudinary";
+import AppError from "../../errors/AppError";
+import httpStatus from "http-status";
 
 const router = express.Router();
 
@@ -16,12 +18,17 @@ router.post(
   "/create-user",
   upload.single("photo"),
   (req: Request, res: Response, next: NextFunction) => {
-    req.body = JSON.parse(req.body.data);
+    try {
+      req.body = JSON.parse(req.body.data);
+    } catch (error) {
+      return next(new AppError(httpStatus.BAD_REQUEST, "Invalid form data"));
+    }
     next();
   },
   validateRequest(createUserValidationSchema),
   UserControllers.createUser
 );
+
 router.post(
   "/create-admin",
   auth(USER_ROLE.superAdmin),
@@ -53,7 +60,11 @@ router.patch(
   "/update-profile",
   upload.single("photo"),
   (req: Request, res: Response, next: NextFunction) => {
-    req.body = JSON.parse(req.body.data);
+    try {
+      req.body = JSON.parse(req.body.data);
+    } catch (error) {
+      return next(new AppError(httpStatus.BAD_REQUEST, "Invalid form data"));
+    }
     next();
   },
   auth(USER_ROLE.superAdmin, USER_ROLE.admin, USER_ROLE.user),
@@ -62,7 +73,7 @@ router.patch(
 );
 router.patch(
   "/update-user-status-role/:email",
-  auth(USER_ROLE.superAdmin,USER_ROLE.admin),
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
   validateRequest(updateUserRoleAndStatusValidationSchema),
   UserControllers.updateUserRoleAndStatus
 );

@@ -9,31 +9,39 @@ import { generateRandomPassword } from "./user.utils";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { userSearchableFields } from "./user.constant";
 
-const createUserIntoDB = async (payload: TUser, photo: any) => {
+const createUserIntoDB = async (payload: TUser, photo: Express.Multer.File) => {
   const user = await User.isUserExists(payload?.email);
   if (user) {
-    throw new AppError(httpStatus.FORBIDDEN, "user already exists");
+    throw new AppError(httpStatus.FORBIDDEN, "User already exists");
   }
-  //set random password
+
+  // Set random password and default role
   payload.password = generateRandomPassword(8);
-  //set user role to user since we're creating user
-  if (!payload.role) {
-    payload.role = "user";
-  }
-  // send image to cloudinary
+  payload.role = payload.role || "user";
+
+  // Upload image to Cloudinary using buffer from multer memory storage
   const imgName = `${payload.name}-${payload.email}`;
-  const path = photo?.path;
-  const { secure_url } = await sendImgToCloudinary(imgName, path);
+  const secure_url = await sendImgToCloudinary(imgName, photo.buffer);
+
+  // Store secure URL in payload and set other fields
   payload.photo = secure_url;
   payload.lastLogin = new Date();
+
+  // Create the user in the database
   const result = await User.create(payload);
-  //send email with password
+
+  // Send email with password if user creation is successful
   if (result) {
     sendUserEmail(result.email, payload.password);
   }
+
   return result;
 };
-const createAdminIntoDB = async (payload: TUser, photo: any) => {
+
+const createAdminIntoDB = async (
+  payload: TUser,
+  photo: Express.Multer.File
+) => {
   const user = await User.isUserExists(payload?.email);
   if (user) {
     throw new AppError(httpStatus.FORBIDDEN, "user already exists");
@@ -44,18 +52,22 @@ const createAdminIntoDB = async (payload: TUser, photo: any) => {
   if (!payload.role) {
     payload.role = "admin";
   }
-  // send image to cloudinary
+  // Upload image to Cloudinary using buffer from multer memory storage
   const imgName = `${payload.name}-${payload.email}`;
-  const path = photo?.path;
-  const { secure_url } = await sendImgToCloudinary(imgName, path);
+  const secure_url = await sendImgToCloudinary(imgName, photo.buffer);
+
+  // Store secure URL in payload and set other fields
   payload.photo = secure_url;
   payload.lastLogin = new Date();
-  //create admin
+
+  // Create the user in the database
   const result = await User.create(payload);
-  //send email with password
+
+  // Send email with password if user creation is successful
   if (result) {
     sendUserEmail(result.email, payload.password);
   }
+
   return result;
 };
 
@@ -90,9 +102,9 @@ const updateUserBasicInfoIntoDB = async (
 
   if (photo) {
     // Handle photo upload to cloudinary if provided
-    const imgName = `${user.name}-${user.email}`;
-    const path = photo?.path;
-    const { secure_url } = await sendImgToCloudinary(imgName, path);
+    // Upload image to Cloudinary using buffer from multer memory storage
+    const imgName = `${payload.name}-${payload.email}`;
+    const secure_url = await sendImgToCloudinary(imgName, photo.buffer);
     payload.photo = secure_url; // Update photo URL in payload
   }
 
