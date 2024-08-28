@@ -5,8 +5,7 @@ export const createUserValidationSchema = z.object({
     .object({
       password: z
         .string({ invalid_type_error: "Password must be string" })
-        .min(8, { message: "Password must be at least 8 characters" })
-        .optional(),
+        .min(6, { message: "Password must be at least 8 characters" }),
       name: z.string().min(3),
       email: z.string().email(),
       studentId: z.string().min(2).optional(),

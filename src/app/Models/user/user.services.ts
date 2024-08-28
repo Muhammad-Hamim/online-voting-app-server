@@ -14,9 +14,7 @@ const createUserIntoDB = async (payload: TUser, photo: Express.Multer.File) => {
   if (user) {
     throw new AppError(httpStatus.FORBIDDEN, "User already exists");
   }
-
   // Set random password and default role
-  payload.password = generateRandomPassword(8);
   payload.role = payload.role || "user";
 
   // Upload image to Cloudinary using buffer from multer memory storage
@@ -29,12 +27,6 @@ const createUserIntoDB = async (payload: TUser, photo: Express.Multer.File) => {
 
   // Create the user in the database
   const result = await User.create(payload);
-
-  // Send email with password if user creation is successful
-  if (result) {
-    sendUserEmail(result.email, payload.password);
-  }
-
   return result;
 };
 
@@ -89,7 +81,7 @@ const getSingleUserFromDB = async (email: string) => {
 const updateUserBasicInfoIntoDB = async (
   userInfo: JwtPayload,
   payload: Partial<TUser>, // Payload can be partial
-  photo: any
+  photo: Express.Multer.File
 ) => {
   const email = userInfo?.email;
   const user = await User.isUserExists(email);

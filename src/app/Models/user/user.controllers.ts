@@ -56,7 +56,7 @@ const updateUserBasicInfo = catchAsync(async (req, res) => {
   const result = await UserServices.updateUserBasicInfoIntoDB(
     req.user,
     userData,
-    photo
+    photo as Express.Multer.File
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,
