@@ -36,8 +36,8 @@ const getSingleCandidate = catchAsync(async (req, res) => {
 });
 
 const updateCandidate = catchAsync(async (req, res) => {
-  const { email } = req.params;
-  const result = await CandidateServices.updateCandidateIntoDB(email, req.body);
+  const { id } = req.params;
+  const result = await CandidateServices.updateCandidateIntoDB(id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

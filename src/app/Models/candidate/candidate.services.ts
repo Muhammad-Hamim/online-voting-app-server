@@ -81,8 +81,22 @@ const updateCandidateIntoDB = async (
   if (!candidate) {
     throw new AppError(httpStatus.NOT_FOUND, "candidate does not exists");
   }
+  //check candidate status
   if (candidate?.status === "approved") {
     throw new AppError(httpStatus.FORBIDDEN, "candidate is already approved");
+  }
+  //check position status
+  const position = await Position.isPositionExists(
+    candidate?.position.toString()
+  );
+  if (!position) {
+    throw new AppError(httpStatus.BAD_REQUEST, "position does not exists");
+  }
+  if (position.status !== "pending") {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "position status is not pending"
+    );
   }
 
   const result = await Candidate.findByIdAndUpdate(id, payload, {

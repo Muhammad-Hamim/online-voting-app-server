@@ -35,7 +35,7 @@ router.get(
 );
 
 router.patch(
-  "/:email",
+  "/update-message/:id",
   auth(USER_ROLE.superAdmin, USER_ROLE.user),
   validateRequest(updateCandidateInfoValidationSchema),
   CandidateControllers.updateCandidate
