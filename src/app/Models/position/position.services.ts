@@ -16,7 +16,6 @@ import { USER_ROLE } from "../user/user.constant";
 import { User } from "../user/user.model";
 
 const createPositionIntoDB = async (payload: TPosition) => {
-  console.log(payload);
   if (new Date(payload.startTime) > new Date(payload.endTime)) {
     throw new AppError(
       httpStatus.BAD_REQUEST,

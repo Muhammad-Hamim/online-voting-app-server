@@ -4,15 +4,16 @@ import config from "../config";
 export const sendResetEmail = async (to: string, resetLink: string) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: config.NODE_ENV ==='production' ? 465 : 587, // Use 587 for STARTTLS
-    secure: config.NODE_ENV==='production', // Set to true if using port 465 for SSL/TLS
+    port: config.NODE_ENV === "production" ? 465 : 587, // Use 587 for STARTTLS
+    secure: config.NODE_ENV === "production", // Set to true if using port 465 for SSL/TLS
     auth: {
       user: config.nodemailer_email as string,
       pass: config.nodemailer_pass as string,
-    },tls: {
-        // do not fail on invalid certs
-        rejectUnauthorized: false,
-      },
+    },
+    tls: {
+      // do not fail on invalid certs
+      rejectUnauthorized: false,
+    },
   });
 
   try {
