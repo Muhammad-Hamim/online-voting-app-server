@@ -11,9 +11,12 @@ import {
 import QueryBuilder from "../../builder/QueryBuilder";
 import { positionSearchableField } from "./position.constant";
 import { Types } from "mongoose";
+import { JwtPayload } from "jsonwebtoken";
+import { USER_ROLE } from "../user/user.constant";
+import { User } from "../user/user.model";
 
 const createPositionIntoDB = async (payload: TPosition) => {
-  console.log(payload)
+  console.log(payload);
   if (new Date(payload.startTime) > new Date(payload.endTime)) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
@@ -65,12 +68,27 @@ const getSinglePositionFromDB = async (id: string) => {
 };
 const updatePositionIntoDB = async (
   id: string,
-  payload: Partial<TPosition>
+  payload: Partial<TPosition>,
+  user: JwtPayload
 ) => {
   //check if position is exists
   const position = await Position.isPositionExists(id);
   if (!position) {
     throw new AppError(httpStatus.NOT_FOUND, "Position does not exists");
+  }
+  //check user existence
+  const isUserExists = await User.isUserExists(user.email);
+  if (!isUserExists) {
+    throw new AppError(httpStatus.FORBIDDEN, "User does not exists");
+  }
+  //check position creator
+  if (isUserExists.role !== "superAdmin") {
+    if (isUserExists?._id?.toString() !== position?.creator.toString()) {
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        "you are not allowed to update this position"
+      );
+    }
   }
   //check if the position status is "pending"
   if (position?.status !== "pending") {
@@ -98,8 +116,14 @@ const updatePositionIntoDB = async (
 };
 const updatePositionStatusAndTerminationMessageIntoDB = async (
   id: string,
-  payload: Partial<TPosition>
+  payload: Partial<TPosition>,
+  user: JwtPayload
 ) => {
+  const userExistence = await User.isUserExists(user.email);
+  if (!userExistence) {
+    throw new AppError(httpStatus.BAD_REQUEST, "user does not exists");
+  }
+
   //get all approved candidate
   const candidate = await Candidate.find({
     position: id,
@@ -110,6 +134,15 @@ const updatePositionStatusAndTerminationMessageIntoDB = async (
   const position = await Position.isPositionExists(id);
   if (!position) {
     throw new AppError(httpStatus.NOT_FOUND, "Position does not exists");
+  }
+  //check position creator
+  if (userExistence.role !== "superAdmin") {
+    if (position.creator.toString() !== userExistence._id?.toString()) {
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        "you are not allowed to update this position"
+      );
+    }
   }
   if (position.isDeleted) {
     throw new AppError(httpStatus.NOT_FOUND, "Position has been deleted!");
@@ -174,25 +207,53 @@ const getAllPositionsWithCandidatesAndWinnerFromDB = async (
 };
 
 const getAllPositionsWithCandidatesAndVotersFromDB = async (
-  query: Record<string, unknown>
+  query: Record<string, unknown>,
+  user: JwtPayload
 ) => {
-  if (query["creator._id"]) {
-    // Convert _id to ObjectId only if it's present
-    query["creator._id"] = new Types.ObjectId(query["creator._id"] as string);
+  let userExistence;
+
+  if (user.role === USER_ROLE.admin) {
+    // Check if user exists
+    userExistence = await User.isUserExists(user.email);
+    if (!userExistence) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    }
+
+    // Directly match positions where the admin is the creator
+    const positionQuery = new QueryBuilder(
+      Position.aggregate([
+        ...getPositionsWithCandidatesAndVotersQuery,
+        {
+          $match: {
+            "creator._id": userExistence._id,
+          },
+        },
+      ]),
+      query,
+      "aggregate"
+    )
+      .search(positionSearchableField) // Apply search functionality
+      .sort() // Apply sorting
+      .filter(); // Apply filtering
+
+    const result = await positionQuery.execute();
+    return result;
+  } else {
+    // For non-admin users, use QueryBuilder to apply search, sort, and filter
+    const positionQuery = new QueryBuilder(
+      Position.aggregate(getPositionsWithCandidatesAndVotersQuery),
+      query,
+      "aggregate"
+    )
+      .search(positionSearchableField)
+      .sort()
+      .filter();
+
+    const result = await positionQuery.execute();
+    return result;
   }
-  const positionQuery = new QueryBuilder(
-    Position.aggregate(getPositionsWithCandidatesAndVotersQuery),
-    query,
-    "aggregate"
-  )
-    .search(positionSearchableField)
-    .sort()
-    .filter();
-
-  const result = await positionQuery.execute();
-
-  return result;
 };
+
 const updatePositionStatuses = async (): Promise<void> => {
   const now = new Date().toISOString(); // Convert the current time to the same string format
 

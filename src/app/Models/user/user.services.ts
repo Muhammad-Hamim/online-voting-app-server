@@ -34,6 +34,7 @@ const createAdminIntoDB = async (
   payload: TUser,
   photo: Express.Multer.File
 ) => {
+  console.log(payload)
   const user = await User.isUserExists(payload?.email);
   if (user) {
     throw new AppError(httpStatus.FORBIDDEN, "user already exists");

@@ -36,7 +36,7 @@ const getSinglePosition = catchAsync(async (req, res) => {
 const updatePosition = catchAsync(async (req, res) => {
   const { id } = req.params;
   const updatedData = req.body;
-  const result = await PositionServices.updatePositionIntoDB(id, updatedData);
+  const result = await PositionServices.updatePositionIntoDB(id, updatedData,req.user);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -51,7 +51,8 @@ const updatePositionStatusAndTerminationMessage = catchAsync(
     const result =
       await PositionServices.updatePositionStatusAndTerminationMessageIntoDB(
         id,
-        positionData
+        positionData,
+        req.user
       );
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -83,7 +84,7 @@ const getAllPositionsWithCandidatesAndWinner = catchAsync(async (req, res) => {
 });
 const getAllPositionsWithCandidatesAndVoters = catchAsync(async (req, res) => {
   const result =
-    await PositionServices.getAllPositionsWithCandidatesAndVotersFromDB(req.query);
+    await PositionServices.getAllPositionsWithCandidatesAndVotersFromDB(req.query,req.user);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

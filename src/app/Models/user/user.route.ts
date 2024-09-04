@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import { UserControllers } from "./user.controllers";
 import validateRequest from "../../middlewares/validateRequest";
 import {
+  createAdminValidationSchema,
   createUserValidationSchema,
   updateUserRoleAndStatusValidationSchema,
   updateUserValidationSchema,
@@ -31,13 +32,16 @@ router.post(
 
 router.post(
   "/create-admin",
-  auth(USER_ROLE.superAdmin),
   upload.single("photo"),
   (req: Request, res: Response, next: NextFunction) => {
-    req.body = JSON.parse(req.body.data);
+    try {
+      req.body = JSON.parse(req.body.data);
+    } catch (error) {
+      return next(new AppError(httpStatus.BAD_REQUEST, "Invalid form data"));
+    }
     next();
   },
-  validateRequest(createUserValidationSchema),
+  validateRequest(createAdminValidationSchema),
   UserControllers.createAdmin
 );
 router.get(
@@ -73,7 +77,7 @@ router.patch(
 );
 router.patch(
   "/update-user-status-role/:email",
-  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  auth(USER_ROLE.superAdmin),
   validateRequest(updateUserRoleAndStatusValidationSchema),
   UserControllers.updateUserRoleAndStatus
 );

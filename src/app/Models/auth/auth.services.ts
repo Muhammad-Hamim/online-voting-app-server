@@ -77,7 +77,7 @@ const loginAdminIntoDB = async (payload: TLoginUser) => {
     throw new AppError(httpStatus.FORBIDDEN, "User has been blocked");
   }
   //checking user role
-  if (user.role !== USER_ROLE.admin) {
+  if (user.role === USER_ROLE.user) {
     throw new AppError(httpStatus.UNAUTHORIZED, "you are not an Admin");
   }
   //checking if the password is incorrect

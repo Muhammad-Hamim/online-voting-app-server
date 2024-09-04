@@ -6,6 +6,7 @@ import { Candidate } from "./candidate.model";
 import { Position } from "../position/position.model";
 import { getMyApplicationDetails } from "../../utils/query";
 import QueryBuilder from "../../builder/QueryBuilder";
+import { JwtPayload } from "jsonwebtoken";
 
 const createCandidateIntoDB = async (payload: TCandidate) => {
   //check if user is exists
@@ -107,8 +108,11 @@ const updateCandidateIntoDB = async (
 
 const updateCandidateStatusIntoDB = async (
   id: string,
-  payload: Partial<TCandidate>
+  payload: Partial<TCandidate>,
+  user: JwtPayload
 ) => {
+  //check user existence
+  const userExistence = await User.isUserExists(user.email);
   //check candidate existence
   const candidate = await Candidate.isCandidateExists(id);
   if (!candidate) {
@@ -127,6 +131,15 @@ const updateCandidateStatusIntoDB = async (
   );
   if (!position) {
     throw new AppError(httpStatus.NOT_FOUND, "position does not exists");
+  }
+  //check position creator
+  if (userExistence?.role !== "superAdmin") {
+    if (position?.creator.toString() !== userExistence?._id?.toString()) {
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        "you are not allowed to update this position"
+      );
+    }
   }
   //check position status
   if (position.status !== "pending") {

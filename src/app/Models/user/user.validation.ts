@@ -22,7 +22,15 @@ export const createUserValidationSchema = z.object({
       }
     }),
 });
-
+export const createAdminValidationSchema = z.object({
+  body: z.object({
+    name: z.string().min(3),
+    email: z.string().email(),
+    studentId: z.string().min(2).optional(),
+    photo: z.string().url().optional(),
+    role: z.enum(["user", "admin", "superAdmin"]).default("admin"),
+  }),
+});
 // Partial schema for updates
 export const updateUserValidationSchema = z.object({
   body: z.object({

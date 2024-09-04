@@ -1,6 +1,9 @@
 export const getAllPositionsWithCandidatesAndWinnerQuery = [
   // Step 1: Lookup candidates for each position
   {
+    $match: { status: { $in: ["closed", "terminated"] } },
+  },
+  {
     $lookup: {
       from: "candidates",
       localField: "_id",

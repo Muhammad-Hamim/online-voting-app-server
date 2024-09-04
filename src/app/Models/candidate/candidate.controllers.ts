@@ -49,7 +49,8 @@ const updateCandidateStatus = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await CandidateServices.updateCandidateStatusIntoDB(
     id,
-    req.body
+    req.body,
+    req.user
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,

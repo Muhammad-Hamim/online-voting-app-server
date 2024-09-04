@@ -2,16 +2,16 @@ import { Model } from "mongoose";
 import { USER_ROLE } from "./user.constant";
 
 export interface TUser {
-  _id?:string;
+  _id?: string;
   name: string;
   email: string;
   studentId?: string;
   password: string;
   passwordChangedAt?: Date;
   photo: string;
-  lastLogin?:Date;
+  lastLogin?: Date;
   role: "user" | "admin" | "superAdmin";
-  status?: "pending" | "active" | "blocked";
+  status?: "in-progress" | "active" | "blocked";
   isDeleted: boolean;
 }
 

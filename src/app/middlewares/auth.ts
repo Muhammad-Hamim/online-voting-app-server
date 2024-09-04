@@ -41,7 +41,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
     }
 
     // check if admin is pending
-    if (user?.role === "admin" && user?.status === "pending") {
+    if (user?.role === "admin" && user?.status === "in-progress") {
       throw new AppError(httpStatus.FORBIDDEN, "your account is under review");
     }
 

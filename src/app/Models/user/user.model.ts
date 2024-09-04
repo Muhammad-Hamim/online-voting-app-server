@@ -38,7 +38,7 @@ userSchema.pre("save", async function (next) {
   if (user.role === "user" && !user.status) {
     user.status = "active";
   } else if (user.role !== "user" && !user.status) {
-    user.status = "pending";
+    user.status = "in-progress";
   }
   next();
 }); // After creating or updating a user, remove the password field from the returned document
