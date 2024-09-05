@@ -7,11 +7,16 @@ import config from "../../config";
 const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.loginUserIntoDB(req.body);
   const { refreshToken } = result;
+
+  // Set cookie with expiration time (e.g., 7 days)
   res.cookie("refreshToken", refreshToken, {
     secure: config.NODE_ENV === "production",
     httpOnly: true,
     sameSite: config.NODE_ENV === "production" ? "none" : "strict",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie will last for 7 days
   });
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -19,6 +24,7 @@ const loginUser = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
 const loginAdmin = catchAsync(async (req, res) => {
   const result = await AuthServices.loginAdminIntoDB(req.body);
   const { refreshToken } = result;
@@ -26,6 +32,8 @@ const loginAdmin = catchAsync(async (req, res) => {
     secure: config.NODE_ENV === "production",
     httpOnly: true,
     sameSite: config.NODE_ENV === "production" ? "none" : "strict",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie will last for 7 days
   });
   sendResponse(res, {
     statusCode: httpStatus.OK,

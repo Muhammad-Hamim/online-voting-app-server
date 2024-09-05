@@ -26,7 +26,7 @@ export const createAdminValidationSchema = z.object({
   body: z.object({
     name: z.string().min(3),
     email: z.string().email(),
-    studentId: z.string().min(2).optional(),
+    studentId: z.string().optional(),
     photo: z.string().url().optional(),
     role: z.enum(["user", "admin", "superAdmin"]).default("admin"),
   }),
